@@ -2134,7 +2134,7 @@ MP.cid = (() => { try { let c = sessionStorage.getItem('hm-cid'); if (!c){ c = r
 
 // ---------- 自己的連線伺服器（Cloudflare）：在 claude.ai 以外的網址（例如 GitHub Pages）使用 ----------
 // 部署好伺服器後，把網址填在這裡，例如 'https://mahjong-server.你的名稱.workers.dev'
-const SERVER_URL = '';
+const SERVER_URL = 'https://mahjong-server.koteika0222.workers.dev';
 function serverRoomApi(){
   return /^https:\/\/[a-z0-9.-]+$/i.test(SERVER_URL.replace(/\/$/, '')) ? Object.freeze({ join: name => serverJoin(name) }) : null;
 }
