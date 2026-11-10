@@ -123,11 +123,14 @@ header > *{pointer-events:auto}
 #actions{position:absolute;left:50%;transform:translateX(-50%);display:none;flex-direction:column;gap:10px;align-items:center;z-index:6;max-width:94%}
 #actions .btnrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .ftip{max-width:min(520px,92vw);background:#fff8e1;color:#5a4410;border:1px solid #f0d58a;font-size:12.5px;line-height:1.55;padding:7px 12px;border-radius:10px;box-shadow:var(--shadow);text-align:center}
-.btn.toggle[aria-pressed="true"]{background:#f5c94d;color:#3d2c00;border-color:transparent}
-.btn.toggle[aria-pressed="true"]::before{content:"✓ "}
+.btn.toggle{display:inline-flex;align-items:center;gap:8px}
+.btn.toggle::after{content:"";flex:none;width:34px;height:20px;border-radius:999px;background:#bdbdbd radial-gradient(circle at 10px 10px,#fff 7px,transparent 8px);transition:background .2s}
+.btn.toggle[aria-pressed="true"]::after{background:#2f8f5b radial-gradient(circle at 24px 10px,#fff 7px,transparent 8px)}
+.btn.toggle[hidden]{display:none}
 #tileName{position:absolute;transform:translate(-50%,-150%);z-index:6;pointer-events:none;background:#1d2420;color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:8px;white-space:nowrap}
 #tileName[hidden]{display:none}
 #actions.show{display:flex}
+#actions .note,#actions .ftip{pointer-events:none}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ftip{background:#3a3218;color:#f5e3ad;border-color:#6b5a26} }
 .note{background:var(--surface);color:var(--muted);font-size:13px;padding:8px 12px;border-radius:999px;box-shadow:var(--shadow)}
 .act{font:900 20px/1 var(--serif);padding:12px 20px;border-radius:12px;border:0;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25),var(--shadow);transition:transform .08s}
@@ -244,11 +247,13 @@ header > *{pointer-events:auto}
 #avUnlock{position:absolute;left:50%;top:150px;transform:translateX(-50%);pointer-events:auto;border:0;border-radius:999px;padding:10px 18px;background:#e3b64d;color:#1c1a12;font:900 14px var(--sans);box-shadow:var(--shadow);cursor:pointer}
 .avstrip{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px}
 .avstrip{flex-wrap:nowrap}
-.avstrip .av-tile{position:relative;left:auto;right:auto;top:auto;transform:none;width:96px;height:72px;flex:none}
+.commrow{display:flex;justify-content:center;margin-top:12px}
+.avstrip:empty{display:none}
+.avstrip .av-tile{position:relative;left:auto;right:auto;top:auto;transform:none;width:128px;height:96px;flex:none}
 .avstrip .av-tile .ava{font-size:28px}
 .avstrip .av-tile .ctl button{width:24px;height:24px;font-size:12px}
 .avstrip .av-tile .start button{padding:3px 8px;font-size:11px}
-.avstrip .av-tile.big{width:96px;height:72px}
+.avstrip .av-tile.big{width:128px;height:96px}
 .avnote{font-size:12px;color:var(--muted);text-align:center;margin:0 0 8px}
 @media (max-width:720px){
   .av-tile{width:96px;height:72px;border-radius:10px}
@@ -315,7 +320,8 @@ header > *{pointer-events:auto}
     <header>
       <div id="tkGlyphs" aria-hidden="true" style="position:absolute;left:-9999px;top:0;font-family:momochidori;font-weight:900">一二三四五六七八九萬東南西北中發白風麻將Checkpoint你胡了自摸！阿福小玉老陳牌流局・房主台數表單人遊玩多人對戰</div>
 <div class="brand">麻將 Checkpoint<small>底 <b id="stakeBase">100</b>・每台 <b id="stakeTai">20</b></small></div>
-      <button class="btn toggle" id="btnFriendly" type="button" aria-pressed="true">新手友善</button>
+      <button class="btn toggle" id="btnFriendly" type="button" role="switch" aria-pressed="true" aria-checked="true">新手友善</button>
+      <button class="btn toggle" id="btnComm" type="button" role="switch" aria-pressed="false" aria-checked="false" hidden>通訊</button>
       <button class="btn" id="btnRules" aria-expanded="false" aria-controls="rules">台數表</button>
       <button class="btn" id="btnSettings" aria-expanded="false" aria-controls="settings">場景設定</button>
       <button class="btn" id="btnSfx" type="button">🔊</button>
@@ -397,7 +403,7 @@ header > *{pointer-events:auto}
         <div class="code" id="lobbyCode"></div>
         <div class="hint2" id="lobbyHint"></div>
         <ol class="seats" id="lobbySeats"></ol>
-        <div id="avBox" hidden><div class="avstrip" id="avLobby"></div><p class="avnote">視訊語音：大家的畫面和聲音直接互傳，不經過伺服器。不開也能看到、聽到別人。</p></div>
+        <div id="avBox" hidden><div class="commrow"><button class="btn toggle" id="btnCommLobby" type="button" role="switch" aria-pressed="false" aria-checked="false">語音視訊</button></div><div class="avstrip" id="avLobby"></div></div>
         <button class="btn ask wide" id="btnBegin" type="button" hidden>開始對局</button>
         <p class="mpmsg info" id="lobbyMsg" role="status"></p>
         <button class="linkbtn" id="btnLeave" type="button">離開房間</button>
@@ -1030,17 +1036,18 @@ function endGame(res){
 
 // ================= 老師評論 =================
 // 同一種建議不要一直講：記住最近說過的角度和句子，挑沒講過的
-const TALK = { kinds:[], texts:[] };
-function chooseTalk(cands){
+const TALK = { kinds:[], texts:[] }, PTALK = { kinds:[], texts:[] };
+function chooseTalk(cands, M){
+  M = M || TALK;
   cands = (cands || []).filter(c => c && c.x);
   if (!cands.length) return '';
-  let pool = cands.filter(c => !TALK.kinds.slice(-4).includes(c.k) && !TALK.texts.includes(c.x));
-  if (!pool.length) pool = cands.filter(c => !TALK.texts.includes(c.x));
-  if (!pool.length) pool = cands;
+  let pool = cands.filter(c => !M.kinds.slice(-4).includes(c.k) && !M.texts.includes(c.x));
+  if (!pool.length) pool = cands.filter(c => !M.kinds.slice(-2).includes(c.k));
+  if (!pool.length){ if (M === PTALK) return ''; pool = cands; }
   const c = pool[Math.floor(Math.random() * pool.length)];
-  TALK.kinds.push(c.k); TALK.texts.push(c.x);
-  if (TALK.kinds.length > 10) TALK.kinds.shift();
-  if (TALK.texts.length > 16) TALK.texts.shift();
+  M.kinds.push(c.k); M.texts.push(c.x);
+  if (M.kinds.length > 10) M.kinds.shift();
+  if (M.texts.length > 16) M.texts.shift();
   return c.x;
 }
 const isYakuTile = (p, t) => t >= 31 || t === seatWind(p) || t === roundWind();
@@ -1115,6 +1122,27 @@ function handTips(p, sh, hand){
   }
   return L;
 }
+// 美碰的建議：攻擊派，講速度、吃碰、衝聽牌（和姊姊的穩健不一樣）
+function pengTips(p, sh, hand){
+  const P = G.players[p], c = counts(hand), L = [];
+  const pairs = []; for (let t=0;t<34;t++) if (c[t] === 2) pairs.push(t);
+  const yp = pairs.find(t => t >= 27 && isYakuTile(p, t));
+  if (yp != null) L.push({ k:'p_yaku', x:`那對${tn(yp)}是寶貝！誰敢打出來，馬上碰，台數直接入袋！` });
+  else if (pairs.length >= 2) L.push({ k:'p_pairs', x:`手上有${pairs.slice(0, 3).map(tn).join('、')}這幾對，誰打出來就給我碰！速度就是一切！` });
+  const rm = []; for (let t=0;t<27;t++){ const n = t % 9; if (n >= 1 && n <= 6 && c[t] && c[t+1]) rm.push(t); }
+  if (rm.length){ const t = rm[Math.floor(Math.random() * rm.length)]; L.push({ k:'p_chi', x:`${seqName([t, t+1])}兩頭都能接，${who((p+3)%4)}打出${tn(t-1)}或${tn(t+2)}就吃！眼睛給我放亮！` }); }
+  if (sh === 1) L.push({ k:'p_push', x:'只差一步了！這時候不要再打安全牌，給我衝！' });
+  if (sh >= 3 && P.discards.length >= 6) L.push({ k:'p_slow', x:'牌這麼散還想慢慢來？能吃能碰就上，先把牌型搞起來再說！' });
+  const sc = suitCounts(P, hand), mx = Math.max(sc[0], sc[1], sc[2]), ms = sc.indexOf(mx);
+  if (mx >= 8) L.push({ k:'p_flush', x:`都已經那麼多${SUIT[ms]}子了，混一色給我做下去！別的花色通通丟掉！` });
+  const th = maxThreatFor(p);
+  if (th.level >= 0.6 && th.j >= 0 && sh <= 1) L.push({ k:'p_brave', x:`${who(th.j)}看起來要聽了？怕什麼，我們比他先胡就好啦！` });
+  const left = G.wall && Number.isFinite(G.wall.length) ? G.wall.length - RESERVE : 99;
+  if (left < 20 && sh <= 1) L.push({ k:'p_last', x:'牌牆快沒了，最後幾張拚了啦！' });
+  if (p === R.dealer) L.push({ k:'p_dealer', x:'你是莊家耶！胡了多拿台數還能連莊，給我打兇一點！' });
+  if (!P.melds.length && P.discards.length >= 7 && sh >= 2) L.push({ k:'p_open', x:'一直都不吃不碰？太乖了啦！該碰的時候就碰，速度比較重要！' });
+  return L;
+}
 // 聽牌時：好不好等
 function waitTip(p, waits){
   if (!waits || !waits.length) return '';
@@ -1157,7 +1185,10 @@ function commentDiscard(A, t){
     return;
   }
   const r = Math.random();
-  if (r < 0.3) say('peng', pick(['好打！', '乾脆！我喜歡！', '這張沒問題，繼續衝！', '節奏不錯喔～', '打得很果斷！', '嗯嗯，跟我想的一樣！']));
+  if (r < 0.35){
+    const pt = Math.random() < 0.65 ? chooseTalk(pengTips(0, cur.sh, G.players[0].hand), PTALK) : '';
+    say('peng', pt || pick(['好打！', '乾脆！我喜歡！', '這張沒問題，繼續衝！', '節奏不錯喔～', '打得很果斷！', '嗯嗯，跟我想的一樣！']));
+  }
   else if (r < 0.85){
     const x = chooseTalk([...whyDiscard(0, t, before).map(o => ({ k:'d_' + o.k, x:pick(['打得好，', '合理，', '對，']) + o.x })), ...handTips(0, cur.sh, G.players[0].hand)]);
     if (x) say('que', x + '。');
@@ -1184,6 +1215,11 @@ function askTeacher(){
       if (safe) txt += `不過${who(th.j)}很有威脅，想保守的話可以打${tn(safe.t)}。`;
     }
     say('que', txt); V.highlight(best.t);
+    // 美碰也插一句：她的看法比較衝
+    if (Math.random() < 0.6){
+      const pt = chooseTalk(pengTips(0, best.sh, after), PTALK);
+      if (pt) setTimeout(() => say('peng', pick(['姊講得太保守了！', '我說啊，', '聽我的！', '哼，']) + pt), 900);
+    }
   } else if (G.phase === 'humanClaim' && G.ctx && G.ctx.h && !(G.ctx.resp && G.ctx.resp[0])) teacherOnClaimOption(G.ctx.h, G.ctx);
   else if (G.phase === 'over') say('que', '這局結束了，按「再來一局」繼續練習吧。');
   else if (G.phase === 'pick') say('que', '現在在「骰莊」：每個人擲三顆骰子，點數最大的人當第一個莊家，坐東。');
@@ -1568,6 +1604,7 @@ function init3D(){
   centerTex = canvasTex(centerCanvas);
   const center = new THREE.Mesh(new THREE.PlaneGeometry(5.7, 5.7), new THREE.MeshStandardMaterial({ map:centerTex, roughness:0.6 }));
   center.rotation.x = -Math.PI/2; center.position.y = 0.02; scene.add(center);
+  buildPlates();
   buildGeometry();
   buildMaterials();
   let savedTable = null; try { savedTable = localStorage.getItem('hm-table'); } catch (e) {}
@@ -1676,11 +1713,19 @@ function resize(){
 function toScreen(v){ const p = v.clone().project(camera); const r = renderer.domElement.getBoundingClientRect(); return { x:(p.x+1)/2*r.width, y:(1-p.y)/2*r.height }; }
 function placeActionBar(){
   const s = toScreen(new THREE.Vector3(0, TH + 0.6, ROW_Z));
-  const h = stage.getBoundingClientRect().height;
-  document.getElementById('actions').style.bottom = Math.max(12, h - s.y + 14) + 'px';
+  const h = stage.getBoundingClientRect().height, el = document.getElementById('actions');
+  let bottom = Math.max(12, h - s.y + 14);
+  // 發亮的牌（要抓或要摸的牌）如果會被按鈕擋到，就把按鈕移到它上面
+  if (wallPick.length){
+    let top = Infinity;
+    for (const m of wallPick){ const p = toScreen(m.getWorldPosition(new THREE.Vector3())); top = Math.min(top, p.y); }
+    const barH = el.offsetHeight || 120;
+    if (top > h - bottom - barH - 30) bottom = Math.max(bottom, h - top + 46);
+  }
+  el.style.bottom = bottom + 'px';
 }
 function drawCenter(){
-  // 牌桌中央的方位盤：中間是局名和莊家，四邊是每一家的門風和名字（字都朝向自己，方便閱讀）
+  // 牌桌中央的方位盤：只放局名、四家門風、莊家（字都朝向自己，方便閱讀）
   const S = 512, g = centerCanvas.getContext('2d');
   g.setTransform(centerCanvas.width / S, 0, 0, centerCanvas.width / S, 0, 0);
   g.clearRect(0,0,S,S);
@@ -1692,44 +1737,79 @@ function drawCenter(){
     g.fillStyle = '#e3b64d'; g.font = `900 34px ${FONT}`; g.fillText('擲骰子決定誰當莊家', S/2, S/2 + 66);
     centerTex.needsUpdate = true; return;
   }
-  // 中間：局名、莊家
-  g.fillStyle = '#f3efe2'; g.font = `900 84px ${FONT}`; g.fillText(handName(), S/2, S/2 - 30, 236);
-  const dn = R.dealer === 0 && !(G && G.spect) ? '你' : NAMES[R.dealer];
-  const dt = `莊家 ${dn}${R.streak ? `・連 ${R.streak}` : ''}`;
-  g.font = `900 36px ${FONT}`;
-  const w = Math.min(250, g.measureText(dt).width + 44);
-  g.fillStyle = '#c62f2b'; g.beginPath(); if (g.roundRect) g.roundRect(S/2 - w/2, S/2 + 34, w, 58, 29); else g.rect(S/2 - w/2, S/2 + 34, w, 58); g.fill();
-  g.fillStyle = '#fff'; g.fillText(dt, S/2, S/2 + 64, 220);
-  // 四邊：門風、位置、名字、莊家、輪到誰
-  const R0 = 50;
-  const spots = [[S/2 - 60, S - 66], [S - 64, S/2 - 44], [S/2 - 60, 66], [64, S/2 - 44]];
+  g.fillStyle = '#f3efe2'; g.font = `900 80px ${FONT}`; g.fillText(handName(), S/2, S/2 + 2, 196);
+  const R0 = 54, spots = [[S/2, S - 74], [S - 74, S/2], [S/2, 74], [74, S/2]];
   for (let p=0;p<4;p++){
-    const [x, y] = spots[p], active = G && G.turn === p && G.phase !== 'over' && G.phase !== 'intro', dealer = p === R.dealer;
+    const [x, y] = spots[p], active = G && G.turn === p && !['over','intro','pick'].includes(G.phase), dealer = p === R.dealer;
     g.save(); g.translate(x, y);
     g.fillStyle = active ? '#e3b64d' : 'rgba(243,239,226,.14)';
     g.beginPath(); g.arc(0, 0, R0, 0, Math.PI*2); g.fill();
-    if (dealer){ g.strokeStyle = '#ff5a4f'; g.lineWidth = 7; g.beginPath(); g.arc(0, 0, R0 + 4, 0, Math.PI*2); g.stroke(); }
-    g.fillStyle = active ? '#1c1a12' : '#f3efe2'; g.font = `900 62px ${FONT}`; g.fillText(HONOR[seatWind(p)-27], 0, 4);
+    if (dealer){ g.strokeStyle = '#ff5a4f'; g.lineWidth = 8; g.beginPath(); g.arc(0, 0, R0 + 5, 0, Math.PI*2); g.stroke(); }
+    g.fillStyle = active ? '#1c1a12' : '#f3efe2'; g.font = `900 68px ${FONT}`; g.fillText(HONOR[seatWind(p)-27], 0, 5);
     if (dealer){
-      g.fillStyle = '#c62f2b'; g.beginPath(); g.arc(38, -38, 20, 0, Math.PI*2); g.fill();
-      g.fillStyle = '#fff'; g.font = `900 24px ${FONT}`; g.fillText('莊', 38, -37);
-    }
-    const me = p === 0 && !(G && G.spect), nm = me ? '你' : NAMES[p];
-    g.fillStyle = active ? '#e3b64d' : '#f3efe2';
-    if (p === 0 || p === 2){
-      // 上下兩家：名字寫在圓圈右邊
-      g.textAlign = 'left';
-      if (!me){ g.font = `700 22px ${FONT}`; g.globalAlpha = .75; g.fillText(POS[p], R0 + 16, -18); g.globalAlpha = 1; }
-      g.font = `900 34px ${FONT}`; g.fillText(nm, R0 + 16, me ? 2 : 16, 170);
-    } else {
-      // 左右兩家：位置和名字寫在圓圈下面
-      g.font = `700 22px ${FONT}`; g.globalAlpha = .75; g.fillText(POS[p], 0, R0 + 22); g.globalAlpha = 1;
-      g.font = `900 30px ${FONT}`; g.fillText(nm, 0, R0 + 54, 112);
+      g.fillStyle = '#c62f2b'; g.beginPath(); g.arc(R0 - 12, -R0 + 12, 24, 0, Math.PI*2); g.fill();
+      g.fillStyle = '#fff'; g.font = `900 28px ${FONT}`; g.fillText('莊', R0 - 12, -R0 + 13);
     }
     g.restore();
   }
   centerTex.needsUpdate = true;
 }
+// ---- 名牌：嵌在牌桌邊框上的銅牌，寫著位置和名字（左右兩家用直書） ----
+const PLATES = [];
+function buildPlates(){
+  const spec = { 1:{ x:13, z:0, side:true }, 2:{ x:0, z:-13, side:false }, 3:{ x:-13, z:0, side:true } };
+  for (const p of [1,2,3]){
+    const o = spec[p], cv = document.createElement('canvas');
+    cv.width = o.side ? 256 : 1024; cv.height = o.side ? 800 : 256;
+    const tex = canvasTex(cv);
+    const mat = new THREE.MeshStandardMaterial({ map:tex, roughness:0.38, metalness:0.25, emissive:0x000000 });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(o.side ? 1.35 : 5.4, o.side ? 4.22 : 1.35), mat);
+    m.rotation.x = -Math.PI/2; m.position.set(o.x, 0.37, o.z); scene.add(m);
+    PLATES[p] = { cv, tex, mat, side:o.side, key:'' };
+  }
+}
+function drawPlates(){
+  if (!PLATES.length) return;
+  for (const p of [1,2,3]){
+    const P = PLATES[p]; if (!P) continue;
+    const active = !!(G && G.turn === p && !['over','intro','pick'].includes(G.phase));
+    const dealer = !R.needPick && p === R.dealer;
+    const name = NAMES[p] || '', wind = R.needPick ? '' : HONOR[seatWind(p)-27];
+    const key = [name, wind, active, dealer].join('|');
+    if (P.key === key) continue; P.key = key;
+    const g = P.cv.getContext('2d'), W = P.cv.width, H = P.cv.height;
+    g.clearRect(0,0,W,H);
+    const grad = P.side ? g.createLinearGradient(0,0,W,0) : g.createLinearGradient(0,0,0,H);
+    if (active){ grad.addColorStop(0,'#fff1b8'); grad.addColorStop(.5,'#ffd75e'); grad.addColorStop(1,'#d9a82e'); }
+    else { grad.addColorStop(0,'#e6c574'); grad.addColorStop(.5,'#c9a24a'); grad.addColorStop(1,'#9c7428'); }
+    g.fillStyle = grad; roundRect(g, 6, 6, W-12, H-12, 36); g.fill();
+    g.strokeStyle = 'rgba(60,40,10,.6)'; g.lineWidth = 6; roundRect(g, 22, 22, W-44, H-44, 24); g.stroke();
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    const ink = '#2b1d08';
+    const windChip = (x, y) => {
+      if (!wind) return;
+      g.fillStyle = ink; g.beginPath(); g.arc(x, y, 62, 0, Math.PI*2); g.fill();
+      g.fillStyle = active ? '#ffd75e' : '#e6c574'; g.font = `900 78px ${FONT}`; g.fillText(wind, x, y + 4);
+      if (dealer){ g.fillStyle = '#c62f2b'; g.beginPath(); g.arc(x + 46, y - 46, 26, 0, Math.PI*2); g.fill(); g.fillStyle = '#fff'; g.font = `900 30px ${FONT}`; g.fillText('莊', x + 46, y - 45); }
+    };
+    if (P.side){
+      // 直書：門風 → 位置 → 名字
+      windChip(W/2, 110);
+      g.fillStyle = 'rgba(43,29,8,.75)'; g.font = `700 44px ${FONT}`;
+      [...POS[p]].forEach((ch, i) => g.fillText(ch, W/2, 222 + i * 48));
+      const chars = [...name].slice(0, 10), room = H - 340 - 40, sz = Math.min(96, Math.floor(room / Math.max(1, chars.length)));
+      g.fillStyle = ink; g.font = `900 ${sz}px ${FONT}`;
+      chars.forEach((ch, i) => g.fillText(ch, W/2, 340 + sz/2 + i * sz));
+    } else {
+      windChip(110, H/2);
+      g.fillStyle = 'rgba(43,29,8,.75)'; g.font = `700 48px ${FONT}`; g.fillText(POS[p], 250, H/2 + 2);
+      g.fillStyle = ink; g.font = `900 104px ${FONT}`; g.textAlign = 'left'; g.fillText(name, 320, H/2 + 4, W - 360);
+    }
+    P.mat.emissive.setHex(active ? 0x3a2a00 : 0x000000);
+    P.tex.needsUpdate = true;
+  }
+}
+function roundRect(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function render(G){
   while (dyn.children.length) dyn.remove(dyn.children[0]);
   handMeshes = []; oppMeshes = [[],[],[],[]]; meldAnimMeshes = []; wallPick = [];
@@ -1785,8 +1865,9 @@ function render(G){
       x += 0.2;
     });
   }
-  drawCenter();
+  drawCenter(); drawPlates();
   if (G.phase !== 'human') hintTile = null;
+  if (actionsEl.classList.contains('show')) placeActionBar();
 }
 
 // ---- 360° 實景背景：玩家可在「換背景」切換 ----
@@ -2012,7 +2093,7 @@ function roundedDieGeo(){
   return (_dieGeo = g);
 }
 function clearDice(){ diceMeshes.forEach(m => scene.remove(m)); diceMeshes = []; }
-function rollDice(values, done){
+function rollDice(values, done, seat){
   if (!diceMats) diceMats = DIE_FACES.map(pipFace);
   clearDice();
   const geo = roundedDieGeo();
@@ -2022,7 +2103,10 @@ function rollDice(values, done){
   const dice = values.map((v, i) => {
     const m = new THREE.Mesh(geo, diceMats); m.castShadow = true; scene.add(m); diceMeshes.push(m);
     const end = new THREE.Vector3(-1.3 + i*1.3 + (Math.random()-.5)*0.4, DIE/2, 0.6 + (Math.random()-.5)*0.8);
-    const startP = new THREE.Vector3(end.x + 3 + Math.random()*2, 4 + Math.random(), end.z + 5);
+    // 從擲骰的人那一邊丟出來：0 自己（前面）、1 右邊、2 對面、3 左邊
+    const sp = seat | 0, side = (Math.random() - .5) * 2.5, far = 6 + Math.random() * 1.5;
+    const off = [[side, far], [far, side], [side, -far], [-far, side]][((sp % 4) + 4) % 4];
+    const startP = new THREE.Vector3(end.x + off[0], 4 + Math.random(), end.z + off[1]);
     const axis = new THREE.Vector3(Math.random()-.5, Math.random()-.5, Math.random()-.5).normalize();
     return { m, end, startP, axis, spin: 14 + Math.random()*8, target: faceUpQuat(v), bounced: 0 };
   });
@@ -2072,12 +2156,12 @@ function pickDealer(cb){
         HOST.rollSeat = null; HOST.onRoll = null; NET.clear();
         V.hideActions();
         const vals = [1,2,3].map(() => 1 + Math.floor(Math.random()*6)), sum = vals[0] + vals[1] + vals[2];
-        NET.ev({ k:'r', v:vals });
+        NET.ev({ k:'r', v:vals, p });
         rollDice(vals, () => {
           if (tok !== gameToken) return;
           results[p] = sum; V.announce(p, `${sum} 點`); i++;
           later(next, 900);
-        });
+        }, p);
       };
       if (p === 0){ setBar([{ label:'🎲 擲骰子', cls:'pon', fn: go }], '骰莊：點數最大的人當莊', ftip('pick')); NET.wait('roll', [0], go); }
       else if (isHuman(p)){ HOST.rollSeat = p; HOST.rollWhy = 'pick'; HOST.onRoll = go; NET.wait('roll', [p], go); }
@@ -2106,7 +2190,7 @@ function diceAndDeal(cb){
     HOST.rollSeat = null; HOST.onRoll = null; NET.clear();
     V.hideActions();
     const vals = [1,2,3].map(() => 1 + Math.floor(Math.random()*6)), sum = vals[0] + vals[1] + vals[2];
-    NET.ev({ k:'r', v:vals });
+    NET.ev({ k:'r', v:vals, p:d });
     rollDice(vals, () => {
       if (tok !== gameToken) return;
       const info = breakInfo(sum);
@@ -2115,7 +2199,7 @@ function diceAndDeal(cb){
       explainBreak(vals);
       NET.ev({ k:'bk', v:vals });
       later(() => { G.phase = 'deal'; dealAnim(cb); }, 1600);
-    });
+    }, d);
   };
   if (d === 0){
     say('que', '這局你是莊家。開局前，莊家要先擲三顆骰子，點數加起來決定從哪一家的牌牆「開門」抓牌。');
@@ -2480,21 +2564,31 @@ function slide(vol){
 }
 // 骰子撞桌：越後面越小聲
 // 骰子：先在手裡搖幾下，丟到桌上後每顆各自彈跳、越彈越小聲越密
+// 四種擲骰聲輪流用：絨布桌面、硬木桌面、清脆塑膠骰、丟進瓷碗
+const DICE_SND = [
+  { name:'felt',   hand:4, pitch:0.8,  bright:0.45, thud:0.2,  gap:0.22, decay:0.55, ring:0 },
+  { name:'wood',   hand:5, pitch:0.95, bright:0.6,  thud:0.16, gap:0.2,  decay:0.62, ring:0 },
+  { name:'click',  hand:7, pitch:1.25, bright:0.75, thud:0.06, gap:0.16, decay:0.66, ring:0 },
+  { name:'bowl',   hand:3, pitch:1.1,  bright:0.5,  thud:0.04, gap:0.12, decay:0.74, ring:1 }
+];
+let diceSndIdx = Math.floor(Math.random() * DICE_SND.length);
 function diceRattle(dur){
   if (!sfxOn) return; const ctx = audio(); if (!ctx) return;
-  const t0 = ctx.currentTime;
+  diceSndIdx = (diceSndIdx + 1 + Math.floor(Math.random() * 2)) % DICE_SND.length;
+  const V = DICE_SND[diceSndIdx], t0 = ctx.currentTime;
   const click = (t, vol, pitch) => {
-    noise(ctx, t, 0.018, 'bandpass', 4200 * pitch, 3000 * pitch, 3.5, 0.55 * vol);
+    noise(ctx, t, 0.018, 'bandpass', 4200 * pitch, 3000 * pitch, 3.5, V.bright * vol);
     tone(ctx, t, 'sine', 2600 * pitch, 2300 * pitch, 0.035, 0.07 * vol);
-    tone(ctx, t, 'triangle', 190, 120, 0.03, 0.12 * vol);   // 敲到桌面的悶聲
+    if (V.thud) tone(ctx, t, 'triangle', 190 * (0.9 + Math.random() * 0.2), 110, 0.035, V.thud * vol);   // 敲到桌面的悶聲
+    if (V.ring) tone(ctx, t, 'sine', 1900 * pitch, 1880 * pitch, 0.25, 0.035 * vol);                      // 碗的餘音
   };
-  for (let i=0;i<5;i++) click(t0 + i * 0.03 + Math.random() * 0.02, 0.25, 1.1 + Math.random() * 0.2);   // 骰子在手裡互撞
+  for (let i=0;i<V.hand;i++) click(t0 + i * 0.028 + Math.random() * 0.025, 0.22, V.pitch * (1.2 + Math.random() * 0.2));   // 骰子在手裡互撞
   for (let d=0; d<3; d++){
-    let t = t0 + 0.2 + d * 0.035 + Math.random() * 0.05, gap = 0.2 + Math.random() * 0.06, vol = 1;
-    const pitch = 0.85 + Math.random() * 0.35;
-    while (vol > 0.06 && t < t0 + dur + 0.1){
+    let t = t0 + 0.18 + d * (0.03 + Math.random() * 0.03) + Math.random() * 0.05, gap = V.gap * (0.9 + Math.random() * 0.25), vol = 1;
+    const pitch = V.pitch * (0.85 + Math.random() * 0.35);
+    while (vol > 0.05 && t < t0 + dur + 0.2){
       click(t, vol, pitch * (0.95 + Math.random() * 0.1));
-      t += gap; gap *= 0.68 + Math.random() * 0.08; vol *= 0.62;
+      t += gap; gap *= 0.66 + Math.random() * 0.1; vol *= V.decay;
     }
   }
 }
@@ -3041,7 +3135,7 @@ function sendHover(i){
 // ================= 視訊語音（WebRTC）=================
 // 四個人的瀏覽器直接互傳影像和聲音（不經過伺服器、全程加密）。伺服器只幫忙交換「怎麼連到對方」的資訊。
 // 只在 GitHub Pages（自己的連線伺服器）上使用；claude.ai 上不開放鏡頭，所以不顯示。
-const AV = { on:false, stream:null, mic:true, cam:false, peers:new Map(), pres:new Map(), me:null, ice:null,
+const AV = { comm:(() => { try { return localStorage.getItem('hm-comm') === 'on'; } catch (e) { return false; } })(), on:false, stream:null, mic:true, cam:false, peers:new Map(), pres:new Map(), me:null, ice:null,
              parts:new Map(), chain:Promise.resolve(), tiles:new Map(), hide:false, blocked:false };
 function avAvailable(){
   return !window.claude && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && typeof RTCPeerConnection === 'function' && !!MP.room;
@@ -3061,8 +3155,23 @@ function avInstall(){
   if (!avAvailable()) return;
   MP.room.onPeers(avOnPeers);
   MP.room.on('mp.av', avOnMsg);
-  $('avBox').hidden = false; $('avLayer').hidden = false;
+  $('avBox').hidden = false; $('avLayer').hidden = false; $('btnComm').hidden = false;
+  $('btnComm').onclick = $('btnCommLobby').onclick = () => avSetComm(!AV.comm);
+  avSyncComm(); avPresence();
   avLayout();
+}
+function avSyncComm(){ for (const id of ['btnComm', 'btnCommLobby']){ const b = $(id); b.setAttribute('aria-pressed', AV.comm); b.setAttribute('aria-checked', AV.comm); b.title = AV.comm ? '通訊：開' : '通訊：關'; } }
+// 通訊開關：關掉時停止鏡頭麥克風、斷開所有視訊連線
+function avSetComm(on){
+  AV.comm = !!on;
+  try { localStorage.setItem('hm-comm', AV.comm ? 'on' : 'off'); } catch (e) {}
+  if (!AV.comm){
+    if (AV.stream) AV.stream.getTracks().forEach(t => t.stop());
+    AV.stream = null; AV.on = false; AV.cam = false;
+    for (const st of [...AV.peers.values()]) avClose(st);
+    const u = $('avUnlock'); if (u) u.remove();
+  } else audio();
+  avSyncComm(); avPresence(); avReconcile(); avLayout();
 }
 // 訊息可能比單則上限大，切成小段送
 function avSend(to, obj){
@@ -3144,7 +3253,7 @@ async function avConnect(peer){
   return st;
 }
 async function avHandle(from, m){
-  if (!m || typeof m !== 'object' || !AV.pres.has(from)) return;
+  if (!m || typeof m !== 'object' || !AV.pres.has(from) || !AV.comm) return;
   await avIce();
   let st = AV.peers.get(from);
   if (m.t === 'offer' && m.sdp){
@@ -3178,7 +3287,7 @@ function avOnPeers(ch){
     want.set(p.peer, pr);
   }
   AV.pres = want;
-  for (const [peer, st] of AV.peers) if (!want.has(peer)) avClose(st);
+  for (const [peer, st] of [...AV.peers]) if (!want.has(peer) || !AV.comm || !want.get(peer).cm) avClose(st);
   avReconcile();
   avLayout();
 }
@@ -3186,16 +3295,16 @@ function avOnPeers(ch){
 function avReconcile(){
   if (!AV.me || !avAvailable()) return;
   for (const [peer, pr] of AV.pres){
-    if (AV.peers.has(peer) || AV.me > peer) continue;
+    if (AV.peers.has(peer) || AV.me > peer || !AV.comm || !pr.cm) continue;
     if (AV.on || (pr.av && pr.av.on)) avConnect(peer).catch(e => console.warn('av', e));
   }
 }
 function avPresence(){
   if (!MP.room) return;
-  MP.room.presence({ av: AV.on ? { on:1, a:AV.mic ? 1 : 0, v:AV.cam ? 1 : 0 } : null }).catch(() => {});
+  MP.room.presence({ cm:AV.comm ? 1 : 0, av: AV.comm && AV.on ? { on:1, a:AV.mic ? 1 : 0, v:AV.cam ? 1 : 0 } : null }).catch(() => {});
 }
 async function avStart(video){
-  if (AV.busy) return; AV.busy = true;
+  if (AV.busy || !AV.comm) return; AV.busy = true;
   audio();
   const A = { echoCancellation:true, noiseSuppression:true, autoGainControl:true };
   const V = { width:{ ideal:320 }, height:{ ideal:240 }, frameRate:{ ideal:15, max:20 }, facingMode:'user' };
@@ -3261,7 +3370,7 @@ function avTile(key, me){
     ctl.append(bm, bc, bh); el.appendChild(ctl);
     const startBox = document.createElement('div'); startBox.className = 'start';
     const b1 = document.createElement('button'), b2 = document.createElement('button');
-    b1.type = b2.type = 'button'; b1.textContent = '開鏡頭＋麥克風'; b2.textContent = '只開麥克風'; b2.className = 'alt';
+    b1.type = b2.type = 'button'; b1.textContent = '視訊＋麥克風'; b2.textContent = '只開麥克風'; b2.className = 'alt';
     b1.onclick = () => avStart(true); b2.onclick = () => avStart(false);
     startBox.append(b1, b2); el.appendChild(startBox);
     Object.assign(t, { bm, bc, bh, startBox });
@@ -3285,6 +3394,7 @@ function avNeedUnlock(){
 function avLayout(){
   if (!avAvailable()) return;
   const layer = $('avLayer'), strip = $('avLobby');
+  if (!AV.comm){ for (const t of AV.tiles.values()) t.el.remove(); AV.tiles.clear(); return; }
   layer.classList.toggle('hideRemote', AV.hide);
   const keep = new Set(['me']);
   // 自己
@@ -3304,7 +3414,7 @@ function avLayout(){
     const st = AV.peers.get(peer);
     const has = st && st.ms.getTracks().length;
     const av = pr.av || null;
-    if (!(av && av.on) && !has) continue;
+    if (!pr.cm || (!(av && av.on) && !has)) continue;
     keep.add(peer);
     const t = avTile(peer, false), name = cleanName(pr.name) || '玩家';
     const conn = st ? st.pc.connectionState : 'new';
@@ -3499,7 +3609,7 @@ function clientEvent(e, rot){
   else if (e.k === 'c') V.celebrate(p);
   else if (e.k === 'cd') clearDice();
   else if (e.k === 'bw'){ if (SHUF.group && !SHUF.building) buildWalls(() => {}); }
-  else if (e.k === 'r' && Array.isArray(e.v)) rollDice(e.v.slice(0, 3).map(n => Math.min(6, Math.max(1, n | 0))), () => {});
+  else if (e.k === 'r' && Array.isArray(e.v)) rollDice(e.v.slice(0, 3).map(n => Math.min(6, Math.max(1, n | 0))), () => {}, Number.isInteger(e.p) ? rot(e.p) : 0);
   else if (e.k === 'bk' && Array.isArray(e.v)) explainBreak(e.v.slice(0, 3).map(n => Math.min(6, Math.max(1, n | 0))));
   else if (e.k === 'pk'){
     say('que', `${p === 0 ? '你' : who(p)}擲出最大的點數，當第一個莊家，坐東。`);
@@ -3722,7 +3832,7 @@ async function mpJoin(){
   renderLobby([null, null, null, null]);
   $('lobbyMsg').textContent = '正在找房間…';
   try { sessionStorage.setItem('hm-room', code); } catch (e) {}
-  if (CL.rejoin){ $('lobbyMsg').textContent = '正在回到房間…如果房主也離開了，等房主回來就會接著打。'; CL.hostAway = true; }
+  if (CL.rejoin){ $('lobbyMsg').textContent = ''; CL.hostAway = true; }
   setTimeout(() => {
     if (CL.sawHost || MP.started) return;
     if (CL.rejoin){ CL.hostGoneT = setTimeout(() => { mpEnded('房主一直沒有回來，這場對局結束。'); }, 30 * 60000); return; }
@@ -3836,7 +3946,7 @@ document.addEventListener('visibilitychange', () => {
   $('btnLeave').addEventListener('click', mpLeave);
   $('btnHome').addEventListener('click', mpLeave);
   const fb = $('btnFriendly');
-  const syncFriendly = () => { fb.setAttribute('aria-pressed', FRIENDLY); fb.title = FRIENDLY ? '新手友善模式：開' : '新手友善模式：關'; };
+  const syncFriendly = () => { fb.setAttribute('aria-pressed', FRIENDLY); fb.setAttribute('aria-checked', FRIENDLY); fb.title = FRIENDLY ? '新手友善模式：開' : '新手友善模式：關'; };
   fb.addEventListener('click', () => {
     FRIENDLY = !FRIENDLY; syncFriendly();
     try { localStorage.setItem('hm-friendly', FRIENDLY ? 'on' : 'off'); } catch (e) {}
