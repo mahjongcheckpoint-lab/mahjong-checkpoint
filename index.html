@@ -185,6 +185,8 @@ header > *{pointer-events:auto}
 @keyframes outro{to{opacity:0}}
 
 /* 開始畫面（瀏覽器規定要先點一下才能出聲） */
+#resumeBox{display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:14px}
+#resumeBox[hidden]{display:none}
 #start{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(5,12,9,.55);backdrop-filter:blur(3px);padding:16px}
 #start[hidden]{display:none}
 #start .card h1{font-family:"momochidori",var(--sans);font-weight:900;font-size:34px;margin:0 0 10px;letter-spacing:.02em}
@@ -258,6 +260,17 @@ header > *{pointer-events:auto}
   .av-tile .start button{padding:4px 8px;font-size:11px}
 }
 #netWarn{position:absolute;top:112px;left:50%;transform:translateX(-50%);z-index:6;max-width:calc(100% - 32px);background:#b3261e;color:#fff;border-radius:12px;padding:8px 14px;font-size:13px;font-weight:700;line-height:1.45;text-align:center;box-shadow:var(--shadow)}
+#stopwatch{position:absolute;right:16px;bottom:16px;z-index:6;width:84px;display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none}
+#stopwatch[hidden]{display:none}
+#stopwatch svg{width:72px;height:72px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+#stopwatch .bg{fill:var(--surface);stroke:rgba(0,0,0,.08);stroke-width:6}
+#stopwatch .ring{fill:none;stroke:#2f8f5b;stroke-width:6;stroke-linecap:round;stroke-dasharray:163.4;transform:rotate(-90deg);transform-origin:32px 34px;transition:stroke-dashoffset .25s linear,stroke .2s}
+#stopwatch .crown{fill:#555}
+#stopwatch b{position:absolute;top:22px;width:72px;text-align:center;font-size:24px;font-weight:900;color:var(--ink,#1b1b1b);font-variant-numeric:tabular-nums}
+#stopwatch span{font-size:12px;font-weight:700;background:var(--surface);border-radius:999px;padding:2px 8px;box-shadow:var(--shadow);white-space:nowrap}
+#stopwatch.warm .ring{stroke:#e0a020}
+#stopwatch.hot .ring{stroke:#d33}
+#stopwatch.hot b{color:#d33}
 #clock.me{background:var(--que);color:#fff;border-color:transparent}
 #clock[hidden]{display:none}
 #btnStart{font-size:18px;padding:14px 30px}
@@ -332,6 +345,7 @@ header > *{pointer-events:auto}
     <div id="actions"></div>
     <div id="clock" hidden aria-live="polite"></div>
     <div id="netWarn" hidden role="status"></div>
+    <div id="stopwatch" hidden aria-live="off"><svg viewBox="0 0 64 64" aria-hidden="true"><rect class="crown" x="28" y="0" width="8" height="6" rx="2"/><circle class="bg" cx="32" cy="34" r="26"/><circle class="ring" cx="32" cy="34" r="26"/></svg><b></b><span>思考時間</span></div>
     <div id="tileName" hidden></div>
     <div id="avLayer" hidden></div>
   </div>
@@ -368,6 +382,7 @@ header > *{pointer-events:auto}
           <button class="mode solo" id="btnSolo" type="button"><b>單人遊玩</b><span>和三位電腦對手練習</span></button>
           <button class="mode" id="btnMulti" type="button"><b>多人對戰</b><span>開房間，邀朋友一起打</span></button>
         </div>
+        <div id="resumeBox" hidden><button class="btn ask wide" id="btnResume" type="button"></button><button class="linkbtn" id="btnResumeDrop" type="button">不用了，清除這個房間</button></div>
       </section>
       <section id="stMulti" hidden>
         <label class="field"><span>你的暱稱</span><input id="mpName" maxlength="8" autocomplete="nickname" placeholder="最多 8 個字"></label>
@@ -489,7 +504,7 @@ const HOST = { seats:[null,null,null,null], peerSeat:{}, keys:{}, seq:0, evq:[],
 const CL = { lastSeq:-1, hid:-1, key:null, hostPeer:null, hostPk:null, seat:0, spect:false, rot:s => s, pid:null, donePid:null,
              promptKey:'', ctx:null, pendingEnd:null, endShown:-1, deadline:0, wait:[], chain:Promise.resolve(), introHid:-1,
              lastPh:'', sawHost:false, hostGoneT:null, nmKey:'', canAct:false, lastRx:0, lastAct:null, hostAway:false };
-const MPT = { turn:25000, claim:12000, roll:15000, grab:10000, shuffle:20000, draw:8000 };   // 連線對局每一步的思考時間（毫秒）
+const MPT = { turn:30000, claim:30000, roll:15000, grab:10000, shuffle:20000, draw:8000 };   // 連線對局每一步的思考時間（毫秒）
 const myTurn = () => !!G && G.phase === 'human' && G.turn === 0 && (NET.role !== 'client' || CL.canAct);
 const DELAY = { ai: 700, claim: 450 };
 function pumpTickers(now){ for (const f of tickers.slice()) f(now); }
@@ -2689,6 +2704,31 @@ async function unseal(key, s){
 function cleanName(s){ return String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁯﻿]/g, '').trim().slice(0, 8); }
 function randomCode(n){ const a = 'abcdefghjkmnpqrstuvwxyz23456789'; let s = ''; for (const x of crypto.getRandomValues(new Uint8Array(n || 4))) s += a[x % a.length]; return s; }
 MP.cid = (() => { try { let c = sessionStorage.getItem('hm-cid'); if (!c){ c = randomCode(10); sessionStorage.setItem('hm-cid', c); } return c; } catch (e) { return randomCode(10); } })();
+// 房主：把牌局存在這台裝置上，關掉網頁後可以「回到房間」；玩家：記住房號和自己的代號
+const RESUME_MS = 60 * 60 * 1000;
+function hostSave(){
+  if (NET.role !== 'host' || !MP.started || !G || !G.players) return;
+  const now = Date.now();
+  const g = { wall:G.wall, players:G.players.map(P => ({ hand:P.hand, melds:P.melds, discards:P.discards, tf:P.tenpaiFlag ? 1 : 0, w:P.warned ? 1 : 0, mw:P.meldWarned ? 1 : 0 })),
+              turn:G.turn, phase:G.phase, last:G.last, lastDraw:G.lastDraw, result:G.phase === 'over' ? G.result : null, hd:G.humanDiscards || 0,
+              wk:G.wk || null, kd:G.kanDraw ? 1 : 0, db:G.drawBack ? 1 : 0 };
+  const snap = { v:1, ts:now, code:MP.code, name:MP.name, hid:NET.hid, seq:HOST.seq, pid:HOST.pid, R:{ ...R }, sc:SCORES.slice(), nm:NAMES.slice(), ctrl:CTRL.slice(),
+                 seats:HOST.seats.map(x => x && { cid:x.cid, name:x.name }), g };
+  try { localStorage.setItem('hm-host', JSON.stringify(snap)); } catch (e) {}
+}
+function resumeInfo(){
+  const now = Date.now();
+  try {
+    const h = JSON.parse(localStorage.getItem('hm-host') || 'null');
+    if (h && h.v === 1 && now - h.ts < RESUME_MS && /^[a-z0-9]{4}$/.test(h.code)) return { host:true, code:h.code, snap:h };
+  } catch (e) {}
+  try {
+    const p = JSON.parse(localStorage.getItem('hm-rejoin') || 'null');
+    if (p && now - p.ts < RESUME_MS && /^[a-z0-9]{4}$/.test(p.code) && typeof p.cid === 'string') return { host:false, code:p.code, cid:p.cid, name:p.name };
+  } catch (e) {}
+  return null;
+}
+function resumeForget(){ try { localStorage.removeItem('hm-host'); localStorage.removeItem('hm-rejoin'); } catch (e) {} }
 
 
 // ---------- 自己的連線伺服器（Cloudflare）：在 claude.ai 以外的網址（例如 GitHub Pages）使用 ----------
@@ -2831,8 +2871,11 @@ function hostPublic(seq){
     dk: d ? [d.shown.slice(), d.start, d.taken.size, d.grab == null ? -1 : d.grab] : null,
     wk: !d && G.wk ? [G.wk.start, G.wk.F, G.wk.B] : null, wl: G.wall ? G.wall.length : 0,
     oh: G.phase === 'over' ? G.players.map(P => encS(P.hand)) : null,
-    w: hostWaitSeats(),
+    // 吃、碰、胡的等待不公開是在等誰（不然大家就知道那個人能吃碰）
+    w: HOST.prompt && HOST.prompt.kind === 'claim' ? [] : hostWaitSeats(),
+    wc: HOST.prompt && HOST.prompt.kind === 'claim' ? 1 : 0,
     dl: HOST.deadline ? Math.max(0, HOST.deadline - Date.now()) : 0,
+    dt: HOST.prompt ? (MPT[HOST.prompt.kind] || MPT.turn) : 0,
     sc: SCORES.slice(), nm: NAMES.slice(), ci: HOST.seats.map(x => x ? x.cid : ''),
     hv: [0,1,2,3].map(s => CTRL[s] === 'ai' ? HOVER[s] : null),
     ev: HOST.evq.splice(0)
@@ -2860,6 +2903,7 @@ function hostBroadcast(){
   if (!MP.room || !G || !MP.started) return;
   const pub = hostPublic(++HOST.seq), pv = {};
   for (let s=1;s<4;s++) if (CTRL[s] === 'remote' && HOST.keys[s]) pv[s] = seal(HOST.keys[s], hostPrivate(s));
+  hostSave();
   HOST.chain = HOST.chain.then(async () => {
     for (const s in pv){ try { pv[s] = await pv[s]; } catch (e) { delete pv[s]; } }
     pub.pv = pv;
@@ -2873,7 +2917,7 @@ function hostSendEnd(res){
   const r = { h: NET.hid, type: res.type, hand: res.hand, nextHand: res.nextHand, nx: [res.next.keep ? 1 : 0, res.next.over ? 1 : 0] };
   if (res.type === 'win') Object.assign(r, { w: res.winner, how: res.how, f: res.from, t: res.tile,
     sc: { items: res.score.items.map(i => [i.name, i.tai, i.why, i.groups.map(encS), i.rn]), total: res.score.total, pays: res.score.pays, de: res.score.dealerExtra ? 1 : 0 } });
-  HOST.lastEnd = r;
+  HOST.lastEnd = r; HOST.endAt = Date.now();
   HOST.chain = HOST.chain.then(() => MP.room.emit('mp.end', r).catch(() => {}));
 }
 async function hostOnAct(msg){
@@ -3329,13 +3373,13 @@ function clientOnPeers(ch){
   if (host){
     CL.sawHost = true; clearTimeout(CL.hostGoneT); CL.hostGoneT = null; CL.hostAway = false;
     if (host.peer !== CL.hostPeer || host.presence.pk !== CL.hostPk){
-      CL.hostPeer = host.peer; CL.hostPk = host.presence.pk; CL.key = null;
+      CL.hostPeer = host.peer; CL.hostPk = host.presence.pk; CL.key = null; CL.lastSeq = -1;
       const pk = CL.hostPk;
       sharedKey(pk).then(k => { if (CL.hostPk === pk) CL.key = k; }).catch(() => {});
     }
   } else if (CL.sawHost && !CL.hostGoneT){
     CL.hostAway = true;
-    CL.hostGoneT = setTimeout(() => mpEnded('房主離開太久了，這場對局結束。'), MP.started ? 90000 : 8000);
+    CL.hostGoneT = setTimeout(() => { resumeForget(); mpEnded('房主離開太久了，這場對局結束。'); }, MP.started || CL.rejoin ? 30 * 60000 : 8000);
   }
   // 其他真人玩家正在摸哪一張牌
   if (MP.started && Array.isArray(CL.ci)){
@@ -3443,6 +3487,7 @@ function clientApply(d, me, pv){
   for (const e of Array.isArray(d.ev) ? d.ev : []) clientEvent(e, rot);
   clientPrompt(active);
   CL.deadline = d.dl ? Date.now() + d.dl : 0;
+  CL.total = d.dt | 0; CL.waitClaim = !!d.wc;
   CL.wait = (Array.isArray(d.w) ? d.w : []).map(rot);
   if (G.phase === 'over') clientMaybeShowEnd();
 }
@@ -3573,6 +3618,77 @@ async function mpCreate(){
   hostLobby();
   $('btnBegin').focus();
 }
+async function mpResume(){
+  const info = resumeInfo(); if (!info) return;
+  if (!info.host){
+    // 玩家：用原本的代號重新加入
+    MP.cid = info.cid; try { sessionStorage.setItem('hm-cid', info.cid); } catch (e) {}
+    $('mpName').value = info.name || $('mpName').value; $('mpCode').value = info.code;
+    CL.rejoin = true;
+    showStart('stMulti');
+    return mpJoin();
+  }
+  const S = info.snap;
+  showStart('stMulti');
+  const lobby = await mpRoomApi(); if (!lobby) return;
+  $('btnResume').disabled = true;
+  try {
+    MP.keys = await makeKeys();
+    MP.code = S.code; MP.name = S.name;
+    MP.room = await lobby.join('mj-' + MP.code);
+  } catch (e) { $('mpMsg').textContent = '回到房間失敗了，可能是連不上伺服器，請稍後再試。'; $('btnResume').disabled = false; return; }
+  hostInstall();
+  for (let i=0;i<4;i++){
+    const x = S.seats[i];
+    HOST.seats[i] = x ? { cid:String(x.cid), name:cleanName(x.name) || '玩家', peer:null, pk:null, gone:false } : null;
+    NAMES[i] = S.nm[i]; SCORES[i] = S.sc[i] | 0; CTRL[i] = i === 0 ? 'local' : S.ctrl[i];
+  }
+  HOST.seats[0] = { cid:MP.cid, name:S.name, peer:null, pk:null };
+  Object.assign(R, S.R);
+  NET.hid = S.hid | 0; HOST.seq = (S.seq | 0) + 100; HOST.pid = (S.pid | 0) + 100;
+  const fail = e => { if (e && ['revoked','not_granted','capability_disabled','capability_removed'].includes(e.code)) mpEnded('連線中斷了，這場對局沒辦法繼續。'); };
+  MP.room.presence({ role:'host', code:MP.code, name:S.name, cid:MP.cid, pk:MP.keys.pub }).catch(() => {});
+  MP.room.onPeers(hostOnPeers, fail);
+  MP.room.on('mp.act', hostOnAct, fail);
+  avInstall();
+  MP.beat = setInterval(() => { if (!MP.started) hostLobby(); else if (!HOST.dirtyT) hostBroadcast(); }, 2500);
+  enterRoomUi(true);
+  MP.started = true;
+  $('start').hidden = true;
+  audio(); keepAwake();
+  // 還沒回來的玩家先等 20 秒，沒回來就由電腦代打（回來後會自動換回本人）
+  for (let s=1;s<4;s++){
+    const st = HOST.seats[s];
+    if (!st || CTRL[s] !== 'remote') continue;
+    st.goneT = setTimeout(() => { st.goneT = null; if (st.peer || CTRL[s] !== 'remote') return; st.gone = true; CTRL[s] = 'ai'; hostSeatGone(s); NET.dirty(); }, 20000);
+  }
+  say('que', `回到房間 ${MP.code.toUpperCase()} 了，牌局從剛剛停下的地方接著打。`);
+  restoreGame(S.g);
+}
+function restoreGame(g){
+  gameToken++;
+  if (!g || !Array.isArray(g.players) || g.players.length !== 4 || ['pick','intro','shuffle','dice','deal'].includes(g.phase)){ newGame(); return; }
+  G = { wall:g.wall, players:g.players.map(P => ({ hand:P.hand, melds:P.melds, discards:P.discards, tenpaiFlag:!!P.tf, warned:!!P.w, meldWarned:!!P.mw })),
+        turn:g.turn, phase:g.phase, last:g.last, lastDraw:g.lastDraw, ctx:null, result:g.result, humanDiscards:g.hd | 0,
+        wk:g.wk, kanDraw:!!g.kd, drawBack:!!g.db, dealOrder:[[],[],[],[]] };
+  if (scene){ clearDice(); clearShufflePile(); buildLabels(); }
+  document.getElementById('result').hidden = true;
+  V.render(G); NET.dirty();
+  const tok = gameToken;
+  // 等大家重新連上、交換金鑰，再從這一步接著進行
+  later(() => {
+    if (tok !== gameToken) return;
+    const ph = G.phase, p = G.turn;
+    if (ph === 'over'){ if (G.result){ V.showResult(G.result); NET.end(G.result); } else newGame(); return; }
+    if ((ph === 'claims' || ph === 'humanClaim') && G.last){ G.phase = 'claims'; V.render(G); return beginClaims(G.last.from, G.last.tile); }
+    const P = G.players[p]; if (!P) return newGame();
+    const n = P.hand.length + 3 * P.melds.length;
+    if (n >= 17) return drawAndPlay(p, false, false);
+    const lastM = P.melds[P.melds.length - 1];
+    const back = ph === 'draw' ? !!G.drawBack : !!(G.kanDraw || (ph === 'reveal' && lastM && /kan/.test(lastM.type)));
+    startTurn(p, true, back);
+  }, 1500);
+}
 async function mpJoin(){
   const lobby = await mpRoomApi(); if (!lobby) return;
   const name = readName(); if (!name){ $('mpMsg').textContent = '先輸入你的暱稱。'; $('mpName').focus(); return; }
@@ -3595,6 +3711,7 @@ async function mpJoin(){
     }
   }
   const fail = e => { if (e && ['revoked','not_granted','capability_disabled','capability_removed'].includes(e.code)) mpEnded('連線中斷了，這場對局沒辦法繼續。'); };
+  try { localStorage.setItem('hm-rejoin', JSON.stringify({ code, cid:MP.cid, name, ts:Date.now() })); } catch (e) {}
   MP.room.presence({ role:'player', code, name, cid:MP.cid, pk:MP.keys.pub }).catch(() => {});
   MP.room.onPeers(clientOnPeers, fail);
   MP.room.on('mp.state', clientOnState, fail);
@@ -3605,20 +3722,44 @@ async function mpJoin(){
   renderLobby([null, null, null, null]);
   $('lobbyMsg').textContent = '正在找房間…';
   try { sessionStorage.setItem('hm-room', code); } catch (e) {}
-  setTimeout(() => { if (!CL.sawHost && !MP.started){ try { MP.room.leave(); } catch (e) {} mpEnded(`找不到房號 ${code.toUpperCase()} 的房間。請確認房號，或請房主重新建立房間。`); } }, 8000);
+  if (CL.rejoin){ $('lobbyMsg').textContent = '正在回到房間…如果房主也離開了，等房主回來就會接著打。'; CL.hostAway = true; }
+  setTimeout(() => {
+    if (CL.sawHost || MP.started) return;
+    if (CL.rejoin){ CL.hostGoneT = setTimeout(() => { mpEnded('房主一直沒有回來，這場對局結束。'); }, 30 * 60000); return; }
+    try { MP.room.leave(); } catch (e) {}
+    mpEnded(`找不到房號 ${code.toUpperCase()} 的房間。請確認房號，或請房主重新建立房間。`);
+  }, 8000);
 }
 
-// 倒數計時：輪到誰、還剩幾秒
+// 倒數計時：輪到自己時右下角出現小碼錶；別人的回合在上方顯示；吃碰的等待不說是誰
+const SW = { lastSec:-1 };
 setInterval(() => {
-  const el = $('clock');
-  if (!NET.role || !MP.started || !G){ el.hidden = true; return; }
-  const dl = NET.role === 'host' ? HOST.deadline : CL.deadline;
-  const wait = NET.role === 'host' ? hostWaitSeats() : CL.wait;
-  if (!dl || !wait.length){ el.hidden = true; return; }
-  const sec = Math.max(0, Math.ceil((dl - Date.now()) / 1000));
-  const mine = wait.includes(0) && !CL.spect;
+  const el = $('clock'), sw = $('stopwatch');
+  if (!NET.role || !MP.started || !G){ el.hidden = true; sw.hidden = true; return; }
+  const host = NET.role === 'host';
+  const dl = host ? HOST.deadline : CL.deadline;
+  const claim = host ? !!(HOST.prompt && HOST.prompt.kind === 'claim') : CL.waitClaim;
+  const wait = host ? hostWaitSeats() : CL.wait;
+  const mine = !CL.spect && (host ? wait.includes(0) : CL.pid != null);
+  const total = host ? (HOST.prompt ? MPT[HOST.prompt.kind] || MPT.turn : 0) : CL.total;
+  const left = dl ? Math.max(0, dl - Date.now()) : 0, sec = Math.ceil(left / 1000);
+  // 自己的碼錶
+  if (mine && dl){
+    sw.hidden = false;
+    const frac = total ? Math.max(0, Math.min(1, left / total)) : 0;
+    sw.querySelector('.ring').style.strokeDashoffset = String(163.4 * (1 - frac));
+    sw.querySelector('b').textContent = sec;
+    sw.className = sec <= 5 ? 'hot' : sec <= 10 ? 'warm' : '';
+    sw.querySelector('span').textContent = claim ? '要不要吃碰' : '思考時間';
+    if (sec <= 5 && sec > 0 && sec !== SW.lastSec && sfxOn){ const ctx = audio(); if (ctx) tone(ctx, ctx.currentTime, 'sine', 1320, 1250, 0.05, 0.05); }
+    SW.lastSec = sec;
+  } else { sw.hidden = true; SW.lastSec = -1; }
+  // 上方：別人的回合
+  if (!dl || mine){ el.hidden = true; return; }
+  if (claim){ el.textContent = '等其他玩家決定…'; el.hidden = false; return; }
+  if (!wait.length){ el.hidden = true; return; }
   const names = wait.map(i => NAMES[i]).join('、');
-  el.textContent = mine ? (sec ? `輪到你・${sec} 秒` : '輪到你・時間到') : sec ? `等 ${names}・${sec} 秒` : `等 ${names}…`;
+  el.textContent = sec ? `等 ${names}・${sec} 秒` : `等 ${names}…`;
   el.classList.toggle('me', mine);
   el.hidden = false;
 }, 250);
@@ -3631,19 +3772,23 @@ setInterval(() => {
     // 看門狗：思考時間到了計時器卻沒觸發（分頁在背景、計時器被瀏覽器延後）就直接處理
     if (HOST.onTimeout && HOST.deadline && now > HOST.deadline + 1500){ const f = HOST.onTimeout; NET.clear(); try { f(); } catch (e) { console.error(e); } }
     // 心跳：就算沒有變化也定時補送牌桌，掉了的訊息、剛重新連上的人都能馬上跟上
-    if (now - HOST.lastSend > 2500){
-      hostBroadcast();
-      // 結算畫面的訊息也可能掉，局結束時一起補送（大家收到同一局只會顯示一次）
-      if (G.phase === 'over' && HOST.lastEnd && HOST.lastEnd.h === NET.hid){ const r = HOST.lastEnd; HOST.chain = HOST.chain.then(() => MP.room.emit('mp.end', r).catch(() => {})); }
+    if (now - HOST.lastSend > 2500) hostBroadcast();
+    // 結算畫面的訊息也可能掉，局結束後定時補送（大家收到同一局只會顯示一次）
+    if (G.phase === 'over' && HOST.lastEnd && HOST.lastEnd.h === NET.hid && now - (HOST.endAt || 0) > 3000){
+      HOST.endAt = now; const r = HOST.lastEnd; HOST.chain = HOST.chain.then(() => MP.room.emit('mp.end', r).catch(() => {}));
     }
     netWarn('');
   } else if (NET.role === 'client'){
-    if (CL.hostAway) netWarn('房主的連線中斷了，正在等房主回來…（房主重新打開網頁不會接回這局）');
+    if (CL.hostAway) netWarn('房主離開了，牌局先暫停。房主重新打開網頁、按「回到房間」就能接著打。');
     else if (CL.lastRx && now - CL.lastRx > 8000 && !(G && G.phase === 'over'))
       netWarn('好一陣子沒有收到房主的牌桌了。房主的遊戲畫面可能被切到背景、螢幕關掉或網路不穩，請房主回到遊戲畫面。');
     else netWarn('');
   }
 }, 1000);
+setInterval(() => {
+  if (NET.role === 'client' && MP.code){ try { localStorage.setItem('hm-rejoin', JSON.stringify({ code:MP.code, cid:MP.cid, name:MP.name, ts:Date.now() })); } catch (e) {} }
+  if (NET.role === 'host' && MP.started) hostSave();
+}, 15000);
 function netWarn(t){ const el = $('netWarn'); if (!el) return; if (el.textContent !== t) el.textContent = t; el.hidden = !t; }
 // 連線對局時不讓手機自動關螢幕（關螢幕時瀏覽器會暫停網頁，房主關螢幕整桌就會停住）
 let wakeLock = null;
@@ -3681,6 +3826,13 @@ document.addEventListener('visibilitychange', () => {
   $('btnJoin').addEventListener('click', mpJoin);
   $('mpCode').addEventListener('keydown', e => { if (e.key === 'Enter') mpJoin(); });
   $('btnBegin').addEventListener('click', hostBegin);
+  const ri = resumeInfo();
+  if (ri){
+    $('resumeBox').hidden = false;
+    $('btnResume').textContent = `回到房間 ${ri.code.toUpperCase()}${ri.host ? '（你是房主）' : ''}`;
+    $('btnResume').addEventListener('click', mpResume);
+    $('btnResumeDrop').addEventListener('click', () => { resumeForget(); $('resumeBox').hidden = true; });
+  }
   $('btnLeave').addEventListener('click', mpLeave);
   $('btnHome').addEventListener('click', mpLeave);
   const fb = $('btnFriendly');
