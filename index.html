@@ -7,6 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<script>
+// Adobe Fonts「百千鳥 Momochidori」(kit ewv5zqa)。在 claude.ai 上會被擋，自動改用 Noto Sans TC
+window.TK_READY = new Promise(function(done){
+  var h = document.documentElement, t = setTimeout(done, 3500), tk = document.createElement('script');
+  var fin = function(){ clearTimeout(t); done(); };
+  tk.src = 'https://use.typekit.net/ewv5zqa.js'; tk.async = true;
+  tk.onerror = fin;
+  tk.onload = function(){ try { Typekit.load({ async:true, active:fin, inactive:fin }); } catch (e) { fin(); } };
+  document.head.appendChild(tk);
+});
+</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yuji+Boku&text=%E6%9D%B1%E5%8D%97%E8%A5%BF%E5%8C%97%E9%A2%A8%E9%96%8B%E5%B1%80%E9%80%A3%E8%8E%8A&display=block">
 <style>
 :root{
@@ -38,9 +49,9 @@ body{height:100%;margin:0;overflow:hidden;font-family:var(--sans);color:var(--te
 
 header{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:10px;padding:12px 16px;z-index:5;pointer-events:none}
 header > *{pointer-events:auto}
-.brand small{font-size:11px;font-weight:500;letter-spacing:.02em;color:var(--muted);margin-top:2px}
+.brand small{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.02em;color:var(--muted);margin-top:2px}
 .brand small b{font-weight:700;color:var(--text)}
-.brand{margin-right:auto;display:flex;flex-direction:column;line-height:1.15;font-weight:900;font-size:18px;letter-spacing:.06em;white-space:nowrap;padding:7px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.brand{font-family:"momochidori",var(--sans);margin-right:auto;display:flex;flex-direction:column;line-height:1.15;font-weight:900;font-size:18px;letter-spacing:.06em;white-space:nowrap;padding:7px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
 .btn{font:600 14px/1 var(--sans);padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
 .btn.ask{background:var(--que);color:#fff;border-color:transparent}
 .btn:focus-visible,.act:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -49,7 +60,7 @@ header > *{pointer-events:auto}
   border-radius:16px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--line);
   opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .18s}
 .panel.open{opacity:1;transform:none;pointer-events:auto}
-.panel h3{font-weight:900;font-size:16px;margin:0 0 10px}
+.panel h3{font-family:"momochidori",var(--sans);font-weight:900;font-size:16px;margin:0 0 10px}
 #settings{width:min(310px,calc(100% - 32px));padding:10px 12px 12px}
 .tabs{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--line);margin-bottom:10px}
 .tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px var(--sans);padding:7px 4px;border-radius:999px;cursor:pointer}
@@ -111,7 +122,13 @@ header > *{pointer-events:auto}
 
 #actions{position:absolute;left:50%;transform:translateX(-50%);display:none;flex-direction:column;gap:10px;align-items:center;z-index:6;max-width:94%}
 #actions .btnrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ftip{max-width:min(520px,92vw);background:#fff8e1;color:#5a4410;border:1px solid #f0d58a;font-size:12.5px;line-height:1.55;padding:7px 12px;border-radius:10px;box-shadow:var(--shadow);text-align:center}
+.btn.toggle[aria-pressed="true"]{background:#f5c94d;color:#3d2c00;border-color:transparent}
+.btn.toggle[aria-pressed="true"]::before{content:"✓ "}
+#tileName{position:absolute;transform:translate(-50%,-150%);z-index:6;pointer-events:none;background:#1d2420;color:#fff;font-size:13px;font-weight:700;padding:4px 10px;border-radius:8px;white-space:nowrap}
+#tileName[hidden]{display:none}
 #actions.show{display:flex}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .ftip{background:#3a3218;color:#f5e3ad;border-color:#6b5a26} }
 .note{background:var(--surface);color:var(--muted);font-size:13px;padding:8px 12px;border-radius:999px;box-shadow:var(--shadow)}
 .act{font:900 20px/1 var(--serif);padding:12px 20px;border-radius:12px;border:0;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25),var(--shadow);transition:transform .08s}
 .act:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.25)}
@@ -126,7 +143,7 @@ header > *{pointer-events:auto}
 #result{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,10,8,.45);z-index:9;padding:16px}
 #result[hidden]{display:none}
 .card{background:var(--surface);backdrop-filter:blur(8px);border-radius:20px;padding:22px 24px;width:min(600px,100%);max-height:100%;overflow-y:auto;box-shadow:var(--shadow);text-align:center}
-.card h2{font-family:var(--serif);font-weight:900;font-size:32px;margin:0 0 4px}
+.card h2{font-family:"momochidori",var(--serif);font-weight:900;font-size:32px;margin:0 0 4px}
 .sub{color:var(--muted);margin:0 0 14px}
 .tiles{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:16px}
 .chip{font-family:var(--serif);font-weight:900;font-size:13px;writing-mode:vertical-rl;background:#f7f1e1;color:#1b1b1b;border-radius:5px;padding:6px 3px;
@@ -170,12 +187,12 @@ header > *{pointer-events:auto}
 /* 開始畫面（瀏覽器規定要先點一下才能出聲） */
 #start{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(5,12,9,.55);backdrop-filter:blur(3px);padding:16px}
 #start[hidden]{display:none}
-#start .card h1{font-weight:900;font-size:34px;margin:0 0 10px;letter-spacing:.02em}
+#start .card h1{font-family:"momochidori",var(--sans);font-weight:900;font-size:34px;margin:0 0 10px;letter-spacing:.02em}
 .startcard{width:min(440px,100%)}
 .lead{color:var(--muted);margin:0 0 18px;line-height:1.6}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mode{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;font-family:var(--sans);box-shadow:var(--shadow)}
-.mode b{font-size:18px;font-weight:900}
+.mode b{font-family:"momochidori",var(--sans);font-size:18px;font-weight:900}
 .mode span{font-size:12px;color:var(--muted)}
 .mode.solo{background:var(--que);color:#fff;border-color:transparent}
 .mode.solo span{color:rgba(255,255,255,.85)}
@@ -242,7 +259,9 @@ header > *{pointer-events:auto}
 <div id="app">
   <div id="stage">
     <header>
-      <div class="brand">麻將 Checkpoint<small>底 <b id="stakeBase">100</b>・每台 <b id="stakeTai">20</b></small></div>
+      <div id="tkGlyphs" aria-hidden="true" style="position:absolute;left:-9999px;top:0;font-family:momochidori;font-weight:900">一二三四五六七八九萬東南西北中發白風麻將Checkpoint你胡了自摸！阿福小玉老陳牌流局・房主台數表單人遊玩多人對戰</div>
+<div class="brand">麻將 Checkpoint<small>底 <b id="stakeBase">100</b>・每台 <b id="stakeTai">20</b></small></div>
+      <button class="btn toggle" id="btnFriendly" type="button" aria-pressed="true">新手友善</button>
       <button class="btn" id="btnRules" aria-expanded="false" aria-controls="rules">台數表</button>
       <button class="btn" id="btnSettings" aria-expanded="false" aria-controls="settings">場景設定</button>
       <button class="btn" id="btnSfx" type="button">🔊</button>
@@ -271,6 +290,7 @@ header > *{pointer-events:auto}
     </section>
     <div id="actions"></div>
     <div id="clock" hidden aria-live="polite"></div>
+    <div id="tileName" hidden></div>
   </div>
   <div class="dock">
     <div class="teacher" id="t-que">
@@ -416,6 +436,8 @@ let G = null, V = null, gameToken = 0;
 // 每個座位由誰操作：local＝這台電腦的玩家（永遠是座位 0）、remote＝連線玩家、ai＝電腦
 const CTRL = ['local','ai','ai','ai'];
 const isHuman = p => CTRL[p] !== 'ai';
+const HOVER = [-1,-1,-1,-1];   // 每家正在摸哪一張手牌（對手出牌前的即時動態）
+const REVEAL_MS = 1000;        // 吃、碰、槓之後先亮牌，停一下再出牌
 // 連線狀態。單人遊玩時 NET.role 是 null，下面這些掛勾都不做事
 const NET = { role:null, hid:0, ev(){}, dirty(){}, wait(){}, clear(){}, end(){} };
 const HOST = { seats:[null,null,null,null], peerSeat:{}, keys:{}, seq:0, evq:[], timer:null, prompt:null, pid:0, deadline:0,
@@ -423,7 +445,7 @@ const HOST = { seats:[null,null,null,null], peerSeat:{}, keys:{}, seq:0, evq:[],
 const CL = { lastSeq:-1, hid:-1, key:null, hostPeer:null, hostPk:null, seat:0, spect:false, rot:s => s, pid:null, donePid:null,
              promptKey:'', ctx:null, pendingEnd:null, endShown:-1, deadline:0, wait:[], chain:Promise.resolve(), introHid:-1,
              lastPh:'', sawHost:false, hostGoneT:null, nmKey:'', canAct:false };
-const MPT = { turn:25000, claim:12000, roll:15000 };   // 連線對局每一步的思考時間（毫秒）
+const MPT = { turn:25000, claim:12000, roll:15000, grab:10000, shuffle:20000 };   // 連線對局每一步的思考時間（毫秒）
 const myTurn = () => !!G && G.phase === 'human' && G.turn === 0 && (NET.role !== 'client' || CL.canAct);
 const DELAY = { ai: 700, claim: 450 };
 function later(fn, ms){ const tok = gameToken; setTimeout(() => { if (tok === gameToken) fn(); }, ms); }
@@ -534,7 +556,9 @@ function dealHand(){
   G.phase = 'intro';
   const tok = gameToken;
   const begin = () => { if (tok !== gameToken) return; G.deal.active = false; startTurn(R.dealer, true, false); };
-  if (V.intro){ V.render(G); V.intro(() => { if (tok !== gameToken) return; G.phase = 'dice'; V.render(G); V.diceAndDeal(begin); }); }
+  const toDice = () => { if (tok !== gameToken) return; G.phase = 'dice'; V.render(G); V.diceAndDeal(begin); };
+  const toShuffle = () => { if (tok !== gameToken) return; G.phase = 'shuffle'; V.render(G); if (V.shuffle) V.shuffle(toDice); else toDice(); };
+  if (V.intro){ V.render(G); V.intro(toShuffle); }
   else begin();
 }
 // 骰子點數 → 從哪一家的牌牆開門（從莊家起逆時針數：1、5、9、13、17 是莊家自己）
@@ -544,7 +568,7 @@ function breakInfo(sum){
   return { rel, side, start };
 }
 function startTurn(p, draw, fromBack){
-  G.turn = p; G.lastDraw = null; G.kanDraw = !!(draw && fromBack);
+  G.turn = p; G.lastDraw = null; G.kanDraw = !!(draw && fromBack); HOVER[p] = -1;
   const P = G.players[p];
   if (draw){
     if (G.wall.length <= RESERVE){ if (V.sfx) V.sfx('ryuukyoku'); return endGame({ type:'draw' }); }
@@ -557,7 +581,7 @@ function startTurn(p, draw, fromBack){
   V.render(G);
   if (p === 0) humanTurn();
   else if (isHuman(p)) NET.wait('turn', [p], () => aiTurn(p));   // 連線玩家：等他出牌，超過時間由電腦代打
-  else later(() => aiTurn(p), DELAY.ai);
+  else later(() => aiThink(p), Math.round(DELAY.ai * 0.3));
 }
 function turnOptsFor(p){
   const P = G.players[p];
@@ -678,7 +702,14 @@ function applyPon(p, ctx, kind){
   G.last = null;
   V.announce(p, kind === 'kan' ? '槓' : '碰');
   if (p !== 0) commentAiCall(p, kind, t);
-  startTurn(p, kind === 'kan', kind === 'kan');
+  revealThen(p, () => startTurn(p, kind === 'kan', kind === 'kan'));
+}
+// 吃碰槓之後：先把牌亮在桌上，停一下，再輪到他出牌
+function revealThen(p, fn){
+  G.turn = p; G.phase = 'reveal';
+  V.render(G);
+  const tok = gameToken;
+  later(() => { if (tok === gameToken) fn(); }, REVEAL_MS);
 }
 function applyChi(p, ctx, seq){
   const P = G.players[p], t = ctx.tile;
@@ -688,7 +719,7 @@ function applyChi(p, ctx, seq){
   G.last = null;
   V.announce(p, '吃');
   if (p !== 0) commentAiCall(p, 'chi', t);
-  startTurn(p, false, false);
+  revealThen(p, () => startTurn(p, false, false));
 }
 function selfKan(p, k){
   NET.clear();
@@ -696,7 +727,7 @@ function selfKan(p, k){
   if (k.type === 'ankan'){ removeN(P.hand, k.tile, 4); P.melds.push({ type:'ankan', tiles:[k.tile,k.tile,k.tile,k.tile] }); }
   else { removeOne(P.hand, k.tile); const m = P.melds.find(m => m.type==='pon' && m.tiles[0]===k.tile); m.type = 'kan'; m.tiles.push(k.tile); }
   V.announce(p, '槓');
-  startTurn(p, true, true);
+  revealThen(p, () => startTurn(p, true, true));
 }
 function humanSelfKan(k){
   if (NET.role === 'client') return NET.clientKan(k);
@@ -718,6 +749,24 @@ function aiChooseDiscard(p){
     if (s < bs){ bs = s; best = a; }
   }
   return best.t;
+}
+function setHover(p, i){ if (HOVER[p] === i) return; HOVER[p] = i; NET.dirty(); }
+function aiThink(p){
+  const P = G.players[p], tok = gameToken;
+  if (G.phase !== 'ai' || G.turn !== p) return;
+  if (G.lastDraw !== null && (canWinWith(P, null) || findKans(P).length)) return later(() => aiTurn(p), Math.round(DELAY.ai * 0.7));
+  const target = P.hand.indexOf(aiChooseDiscard(p)), n = P.hand.length, path = [];
+  const k = 1 + Math.floor(Math.random() * 2);
+  for (let i=0;i<k;i++) path.push(Math.floor(Math.random() * n));
+  path.push(target);
+  const step = Math.max(30, Math.round(DELAY.ai * 0.7 / path.length));
+  let i = 0;
+  const go = () => {
+    if (tok !== gameToken || G.turn !== p || G.phase !== 'ai') return;
+    if (i < path.length){ setHover(p, path[i++]); return later(go, step); }
+    setHover(p, -1); aiTurn(p);
+  };
+  go();
 }
 function aiTurn(p){
   const P = G.players[p];
@@ -991,12 +1040,16 @@ function teacherOnEnd(res){
 
 // ================= 3D 牌桌 =================
 const FONT = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+const TILE_FONT = '"momochidori",' + FONT;   // 牌上的字用百千鳥，缺字時自動用 Noto Sans TC
 const TW = 0.9, TH = 1.2, TD = 0.72, ROW_Z = 10;
 const GAP = 0.08, STEP = TW + GAP;   // 牌與牌之間的空隙
 const stage = document.getElementById('stage');
+let glowMat;
 let renderer, scene, camera, dyn, sideMat, backMat, geoFront, geoBack, geoFace;
 const faceMats = [], faceHi = [], faceLast = [];
 let handMeshes = [], hovered = null, selectedKey = null, hintTile = null;
+let oppMeshes = [[],[],[],[]], meldAnimMeshes = [], wallPick = [], grabFn = null;
+const MELD = { hk:null, count:[0,0,0,0], anim:[null,null,null,null] };
 let centerCanvas, centerTex, labelTex = [];
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(-9, -9);
 
@@ -1018,6 +1071,50 @@ function dotColor(n, i){
   return BLUE;
 }
 function px(p){ return [10 + p[0]*108, 10 + p[1]*152]; }
+// 一條：站在竹枝上的小麻雀（呼應「美雀」）
+function drawBird(g){
+  g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
+  // 竹枝
+  g.strokeStyle = GREEN; g.lineWidth = 7;
+  g.beginPath(); g.moveTo(14, 138); g.quadraticCurveTo(64, 126, 116, 142); g.stroke();
+  g.strokeStyle = '#f7f1e1'; g.lineWidth = 2;
+  [40, 88].forEach(x => { g.beginPath(); g.moveTo(x, 128); g.lineTo(x, 140); g.stroke(); });
+  g.fillStyle = GREEN;
+  g.beginPath(); g.ellipse(102, 126, 13, 5, -0.6, 0, Math.PI*2); g.fill();
+  // 尾巴：三根羽毛
+  [[RED, -0.25], [BLUE, 0.05], [GREEN, 0.35]].forEach(([c, a]) => {
+    g.save(); g.translate(44, 104); g.rotate(2.25 + a);
+    g.fillStyle = c; g.beginPath(); g.ellipse(18, 0, 19, 6, 0, 0, Math.PI*2); g.fill();
+    g.restore();
+  });
+  // 身體
+  g.fillStyle = '#8a5a2b';
+  g.beginPath(); g.ellipse(66, 96, 30, 25, -0.25, 0, Math.PI*2); g.fill();
+  // 肚子
+  g.fillStyle = '#f2dcb3';
+  g.beginPath(); g.ellipse(76, 106, 18, 15, -0.3, 0, Math.PI*2); g.fill();
+  // 翅膀
+  g.fillStyle = BLUE;
+  g.beginPath(); g.moveTo(42, 88); g.quadraticCurveTo(64, 74, 80, 92); g.quadraticCurveTo(66, 116, 40, 108); g.closePath(); g.fill();
+  g.strokeStyle = '#f7f1e1'; g.lineWidth = 2;
+  [[48, 96, 70, 92], [46, 103, 66, 100]].forEach(([a, b, c, d]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); });
+  // 頭
+  g.fillStyle = '#8a5a2b';
+  g.beginPath(); g.arc(88, 64, 19, 0, Math.PI*2); g.fill();
+  g.fillStyle = RED;    // 頭頂
+  g.beginPath(); g.arc(86, 58, 15, Math.PI*1.05, Math.PI*1.95); g.closePath(); g.fill();
+  g.fillStyle = '#f2dcb3';   // 臉頰
+  g.beginPath(); g.ellipse(94, 72, 9, 7, 0, 0, Math.PI*2); g.fill();
+  g.fillStyle = INK;    // 眼睛
+  g.beginPath(); g.arc(94, 62, 3.6, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(95.2, 60.8, 1.2, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#e0a020';   // 嘴
+  g.beginPath(); g.moveTo(105, 62); g.lineTo(117, 66); g.lineTo(105, 70); g.closePath(); g.fill();
+  // 腳
+  g.strokeStyle = '#c97a2a'; g.lineWidth = 3;
+  [[60, 118], [72, 120]].forEach(([x, y]) => { g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2, 130); g.moveTo(x - 2, 130); g.lineTo(x + 5, 132); g.moveTo(x - 2, 130); g.lineTo(x - 8, 132); g.stroke(); });
+  g.restore();
+}
 function drawTileFace(g, t){
   g.fillStyle = '#f7f1e1'; g.fillRect(0,0,128,172);
   const grd = g.createLinearGradient(0,0,0,172); grd.addColorStop(0,'rgba(255,255,255,.35)'); grd.addColorStop(1,'rgba(0,0,0,.06)');
@@ -1025,8 +1122,8 @@ function drawTileFace(g, t){
   g.strokeStyle = 'rgba(80,60,20,.18)'; g.lineWidth = 5; g.strokeRect(2.5,2.5,123,167);
   g.textAlign = 'center'; g.textBaseline = 'middle';
   if (t < 9){
-    g.fillStyle = INK; g.font = `900 60px ${FONT}`; g.fillText(NUM[t], 64, 50);
-    g.fillStyle = RED; g.font = `900 64px ${FONT}`; g.fillText('萬', 64, 124);
+    g.fillStyle = INK; g.font = `900 60px ${TILE_FONT}`; g.fillText(NUM[t], 64, 50);
+    g.fillStyle = RED; g.font = `900 64px ${TILE_FONT}`; g.fillText('萬', 64, 124);
   } else if (t < 18){
     const n = t-8, r = n===1 ? 38 : n===2 ? 24 : n<=4 ? 19 : n<=6 ? 16 : 13;
     DOT[n].forEach((p,i) => {
@@ -1038,11 +1135,8 @@ function drawTileFace(g, t){
     });
   } else if (t < 27){
     const n = t-17;
-    if (n === 1){
-      g.fillStyle = GREEN; g.fillRect(52, 28, 24, 116);
-      g.fillStyle = RED; g.fillRect(48, 22, 32, 14); g.fillRect(48, 136, 32, 14);
-      g.strokeStyle = '#f7f1e1'; g.lineWidth = 3; [62, 86, 110].forEach(y => { g.beginPath(); g.moveTo(52,y); g.lineTo(76,y); g.stroke(); });
-    } else {
+    if (n === 1) drawBird(g);
+    else {
       const h = n<=3 ? 40 : n<=6 ? 34 : n===8 ? 28 : 30;
       DOT[n].forEach((p,i) => {
         const [x,y] = px(p);
@@ -1054,13 +1148,14 @@ function drawTileFace(g, t){
   } else {
     const ch = HONOR[t-27];
     if (ch === '白'){ g.strokeStyle = BLUE; g.lineWidth = 7; g.strokeRect(24, 30, 80, 112); g.lineWidth = 3; g.strokeRect(34, 40, 60, 92); }
-    else { g.fillStyle = ch==='中' ? RED : ch==='發' ? GREEN : INK; g.font = `900 92px ${FONT}`; g.fillText(ch, 64, 90); }
+    else { g.fillStyle = ch==='中' ? RED : ch==='發' ? GREEN : INK; g.font = `900 92px ${TILE_FONT}`; g.fillText(ch, 64, 90); }
   }
 }
 function canvasTex(cv){ const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4; return tex; }
 function buildMaterials(){
   sideMat = new THREE.MeshStandardMaterial({ color:0xf3ecd8, roughness:0.38 });
   backMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.35 });
+  glowMat = new THREE.MeshStandardMaterial({ color:0xf5d27a, roughness:0.35, emissive:0xb07a10, emissiveIntensity:0.55 });
   for (let t=0;t<34;t++){
     const cv = document.createElement('canvas'); cv.width = 256; cv.height = 344;
     const cg = cv.getContext('2d'); cg.scale(2, 2); drawTileFace(cg, t);
@@ -1280,18 +1375,35 @@ function init3D(){
   buildLabels();
   dyn = new THREE.Group(); scene.add(dyn);
   const cv = renderer.domElement;
-  cv.addEventListener('pointermove', e => {
-    setNdc(e); const prev = hovered; hovered = pickHand();
-    const mine = hovered && myTurn();
-    cv.style.cursor = mine ? 'pointer' : 'default';
-    if (mine && hovered !== prev && e.pointerType === 'mouse') whoosh();
+  cv.addEventListener('pointerdown', e => {
+    if (!SHUF.group || SHUF.building) return;
+    setNdc(e); const pt = tablePoint(); if (!pt) return;
+    SHUF.dragging = true; SHUF.last = pt; try { cv.setPointerCapture(e.pointerId); } catch (x) {}
   });
-  cv.addEventListener('pointerleave', () => { hovered = null; });
+  cv.addEventListener('pointermove', e => {
+    setNdc(e);
+    if (SHUF.dragging){
+      const pt = tablePoint();
+      if (pt && SHUF.last){ SHUF.drag = { x:pt.x, z:pt.z, dx:pt.x - SHUF.last.x, dz:pt.z - SHUF.last.z }; SHUF.last = pt; }
+      return;
+    }
+    const prev = hovered; hovered = pickHand();
+    const mine = hovered && myTurn();
+    const overWall = grabFn && wallPick.length && pickWall();
+    cv.style.cursor = mine || overWall ? 'pointer' : SHUF.group ? 'grab' : 'default';
+    if (mine && hovered !== prev && e.pointerType === 'mouse') whoosh();
+    if (myTurn()) sendHover(hovered ? handMeshes.indexOf(hovered) : -1);
+    showTileName(mine && FRIENDLY ? hovered : null, e);
+  });
+  cv.addEventListener('pointerleave', () => { hovered = null; showTileName(null); });
   cv.addEventListener('pointerup', e => {
-    setNdc(e); const m = pickHand();
+    if (SHUF.dragging){ SHUF.dragging = false; SHUF.drag = null; SHUF.last = null; return; }
+    setNdc(e);
+    if (grabFn && wallPick.length && pickWall()){ const f = grabFn; f(); return; }
+    const m = pickHand();
     if (!m || !myTurn()){ selectedKey = null; return; }
     if (e.pointerType === 'mouse' || selectedKey === m.userData.key){ selectedKey = null; humanDiscard(m.userData.tile); }
-    else { selectedKey = m.userData.key; whoosh(); }
+    else { selectedKey = m.userData.key; whoosh(); sendHover(handMeshes.indexOf(m)); showTileName(FRIENDLY ? m : null, e); }
   });
   new ResizeObserver(resize).observe(stage); resize();
   (function loop(){
@@ -1299,6 +1411,19 @@ function init3D(){
     const now = performance.now();
     for (const f of tickers.slice()) f(now);
     if (pano && !reduceMotion.matches) pano.rotation.y += 0.0004;
+    for (let p=1;p<4;p++){
+      const active = G && G.turn === p && (G.phase === 'human' || G.phase === 'ai');
+      oppMeshes[p].forEach((m, j) => {
+        const up = active && HOVER[p] === j ? 0.42 : 0;
+        m.position.y += (m.userData.baseY + up - m.position.y) * 0.22;
+        m.rotation.x += ((active && HOVER[p] === j ? 0.22 : 0) - m.rotation.x) * 0.22;
+      });
+    }
+    for (const m of meldAnimMeshes){
+      const e = Math.min(1, (now - m.userData.t0 - m.userData.i * 70) / 420);
+      m.position.y = m.userData.baseY + (e < 0 ? 1.4 : Math.pow(1 - e, 2) * 1.4 + Math.sin(e * Math.PI) * 0.12);
+    }
+    stepShuffle();
     for (const m of handMeshes){
       let up = (hovered === m || selectedKey === m.userData.key) ? 0.34 : 0;
       if (m.userData.hint) up = reduceMotion.matches ? 0.6 : 0.55 + Math.abs(Math.sin(now/190))*0.45;   // 建議的牌持續彈跳
@@ -1309,6 +1434,25 @@ function init3D(){
 }
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 function setNdc(e){ const r = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1); }
+function pickWall(){
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.intersectObjects(wallPick, true).length > 0;
+}
+const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), _hit = new THREE.Vector3();
+function tablePoint(){
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.ray.intersectPlane(_plane, _hit) ? { x:_hit.x, z:_hit.z } : null;
+}
+// 新手友善：滑到自己的牌上，顯示這張牌的名稱
+function showTileName(m, e){
+  const el = document.getElementById('tileName');
+  if (!m || !m.userData || m.userData.tile == null){ el.hidden = true; return; }
+  const r = stage.getBoundingClientRect();
+  el.textContent = tn(m.userData.tile);
+  el.style.left = (e ? e.clientX - r.left : r.width/2) + 'px';
+  el.style.top = (e ? e.clientY - r.top : r.height/2) + 'px';
+  el.hidden = false;
+}
 function pickHand(){
   if (!handMeshes.length) return null;
   raycaster.setFromCamera(ndc, camera);
@@ -1355,7 +1499,11 @@ function drawCenter(){
 }
 function render(G){
   while (dyn.children.length) dyn.remove(dyn.children[0]);
-  handMeshes = [];
+  handMeshes = []; oppMeshes = [[],[],[],[]]; meldAnimMeshes = []; wallPick = [];
+  // 記錄每家亮出的牌組數，多了一組就播放「亮牌」動畫
+  const hk = NET.role === 'client' ? CL.hid : NET.hid, nowT = performance.now();
+  if (hk !== MELD.hk){ MELD.hk = hk; MELD.count = G.players.map(P => P.melds.length); MELD.anim = [null,null,null,null]; }
+  G.players.forEach((P, p) => { if (P.melds.length > MELD.count[p]) MELD.anim[p] = { idx:P.melds.length - 1, t0:nowT }; MELD.count[p] = P.melds.length; });
   const over = G.phase === 'over';
   let hiUsed = false;
   for (let p=0;p<4;p++){
@@ -1365,7 +1513,7 @@ function render(G){
       const isLast = G.last && G.last.from === p && i === P.discards.length-1 && (G.phase === 'claims' || G.phase === 'humanClaim');
       flatTile(grp, t, -3*STEP + (i%6)*STEP + TW/2, 3.0 + Math.floor(i/6)*(TH+GAP) + TH/2, isLast ? 'last' : 'face');
     });
-    if (G.deal && G.deal.active) drawWall(grp, p, G.deal.taken);
+    if (G.deal && G.deal.active && !SHUF.group && (G.phase === 'dice' || G.phase === 'deal')) drawWall(grp, p, G.deal.taken, G.deal.grab === 0 ? G.deal.next : null);
     let hand = P.hand.slice(), drawn = null;
     if (G.deal && G.deal.active) hand = sortHand(G.dealOrder[p].slice(0, G.deal.shown[p]));
     if (p === 0 && G.phase === 'human' && G.turn === 0 && G.lastDraw !== null && hand.includes(G.lastDraw)){ drawn = G.lastDraw; removeOne(hand, drawn); }
@@ -1380,16 +1528,21 @@ function render(G){
         const hi = hintTile === t && !hiUsed; if (hi) hiUsed = true;
         const m = standTile(grp, t, cx, ROW_Z, hi ? 'hi' : 'face', -0.28);
         m.userData = { tile:t, key, baseY:TH/2 + 0.1, hint:hi }; m.position.y = m.userData.baseY; handMeshes.push(m);
-      } else standTile(grp, t, cx, ROW_Z, 'hidden', 0);
+      } else {
+        const m = standTile(grp, t, cx, ROW_Z, 'hidden', 0);
+        m.userData = { baseY:TH/2 }; oppMeshes[p].push(m);
+      }
       x += STEP;
     };
     hand.forEach((t,i) => place(t, 'h'+i));
     if (drawn !== null){ x += 0.35; place(drawn, 'd'); }
     if (P.melds.length) x += 0.6;
-    P.melds.forEach(m => {
+    P.melds.forEach((m, mi) => {
+      const an = MELD.anim[p] && MELD.anim[p].idx === mi && nowT - MELD.anim[p].t0 < 1600 ? MELD.anim[p] : null;
       m.tiles.forEach((t,i) => {
         const hide = m.type === 'ankan' && (i === 0 || i === 3) && !over;
-        flatTile(grp, t, x + TW/2, ROW_Z + 0.05, hide ? 'hidden' : 'face'); x += STEP;
+        const mesh = flatTile(grp, t, x + TW/2, ROW_Z + 0.05, hide ? 'hidden' : an ? 'hi' : 'face'); x += STEP;
+        if (an){ mesh.userData = { baseY:TD/2, t0:an.t0, i }; meldAnimMeshes.push(mesh); }
       });
       x += 0.2;
     });
@@ -1549,13 +1702,18 @@ function renderTablePanel(){
 
 // ---- 牌牆：每家面前 17 墩、每墩 2 張 ----
 const WALL_S = 0.62, WALL_R = 5.4;
-function drawWall(grp, p, taken){
+function drawWall(grp, p, taken, next){
   const wg = new THREE.Group(); wg.scale.setScalar(WALL_S); grp.add(wg);
   for (let j=0;j<17;j++){
     if (taken.has(p*17 + j)) continue;
     const x = (-8 + j)*STEP, z = WALL_R / WALL_S;
+    const glow = next && next.includes(p*17 + j);
     const lo = flatTile(wg, 0, x, z, 'hidden'); const hi = flatTile(wg, 0, x, z, 'hidden'); hi.position.y += TD;
     lo.castShadow = hi.castShadow = false;
+    if (glow){
+      [lo, hi].forEach(m => { m.children.forEach(c => { c.material = glowMat; }); wallPick.push(m); });
+      lo.position.y += 0.12; hi.position.y += 0.12;
+    }
   }
 }
 
@@ -1606,6 +1764,7 @@ function rollDice(values, done){
   const geo = roundedDieGeo();
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dur = reduce ? 0.4 : 1.6, t0 = performance.now();
+  diceRattle(dur);
   const dice = values.map((v, i) => {
     const m = new THREE.Mesh(geo, diceMats); m.castShadow = true; scene.add(m); diceMeshes.push(m);
     const end = new THREE.Vector3(-1.3 + i*1.3 + (Math.random()-.5)*0.4, DIE/2, 0.6 + (Math.random()-.5)*0.8);
@@ -1623,8 +1782,6 @@ function rollDice(values, done){
       d.m.position.y = d.end.y + hop;
       const free = new THREE.Quaternion().setFromAxisAngle(d.axis, d.spin * (1 - e) * (1 - e));
       d.m.quaternion.copy(d.target).multiply(free);
-      const b = Math.floor(e * 3);
-      if (b > d.bounced && k < 1){ d.bounced = b; diceHit(1 - e); }
     }
     if (k >= 1){ tickers.splice(tickers.indexOf(tick), 1); done(); }
   };
@@ -1668,7 +1825,7 @@ function pickDealer(cb){
           later(next, 900);
         });
       };
-      if (p === 0){ setBar([{ label:'🎲 擲骰子', cls:'pon', fn: go }], '骰莊：點數最大的人當莊'); NET.wait('roll', [0], go); }
+      if (p === 0){ setBar([{ label:'🎲 擲骰子', cls:'pon', fn: go }], '骰莊：點數最大的人當莊', ftip('pick')); NET.wait('roll', [0], go); }
       else if (isHuman(p)){ HOST.rollSeat = p; HOST.rollWhy = 'pick'; HOST.onRoll = go; NET.wait('roll', [p], go); }
       else later(go, 500);
     };
@@ -1709,7 +1866,7 @@ function diceAndDeal(cb){
   if (d === 0){
     say('que', '這局你是莊家。開局前，莊家要先擲三顆骰子，點數加起來決定從哪一家的牌牆「開門」抓牌。');
     say('peng', '快按「擲骰子」！');
-    setBar([{ label:'🎲 擲骰子', cls:'pon', fn: roll }], '你是莊家，擲骰子決定開門位置');
+    setBar([{ label:'🎲 擲骰子', cls:'pon', fn: roll }], '你是莊家，擲骰子決定開門位置', ftip('break'));
     NET.wait('roll', [0], roll);
   } else {
     say('que', `這局${who(d)}當莊，他坐東，你坐${HONOR[seatWind(0)-27]}。由莊家擲骰子決定開門的位置。`);
@@ -1719,31 +1876,145 @@ function diceAndDeal(cb){
   }
 }
 function dealAnim(cb){
-  const tok = gameToken;
+  const tok = gameToken, hid = NET.hid;
   say('peng', '抓牌囉！每次抓兩墩、4 張，輪四圈！');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let step = 0, idx = G.deal.start;
   const next = () => {
     if (tok !== gameToken) return;
     if (step === 16){
-      clearDice(); NET.ev({ k:'cd' });
+      G.deal.grab = null; clearDice(); NET.ev({ k:'cd' });
       say('que', `每人都有 16 張了。莊家${R.dealer === 0 ? '（你）' : NAMES[R.dealer]}再摸一張變 17 張，然後先打出一張，遊戲就開始了。`);
       return later(cb, reduce ? 200 : 700);
     }
-    const p = (R.dealer + step) % 4;
-    for (let k=0;k<2;k++){ G.deal.taken.add(idx); idx = (idx + 67) % 68; }   // 順時針抓
-    G.deal.shown[p] += 4; step++;
-    V.render(G); V.sfx('deal', p);
-    later(next, reduce ? 60 : 230);
+    const p = (R.dealer + step) % 4, myStep = step;
+    G.deal.next = [idx, (idx + 67) % 68];
+    const take = () => {
+      if (tok !== gameToken || myStep !== step) return;
+      HOST.grabSeat = null; HOST.onGrab = null; grabFn = null; NET.clear();
+      G.deal.grab = null;
+      for (let k=0;k<2;k++){ G.deal.taken.add(idx); idx = (idx + 67) % 68; }   // 順時針抓
+      G.deal.shown[p] += 4; step++;
+      if (p === 0) V.hideActions();
+      V.render(G); V.sfx('deal', p);
+      later(next, reduce ? 60 : 230);
+    };
+    if (p === 0 && AUTOGRAB.hid !== hid){
+      G.deal.grab = 0; grabFn = take; V.render(G);
+      setBar([{ label:'抓牌', cls:'pon', fn: take }, { label:'幫我抓完', cls:'pass', fn: () => { AUTOGRAB.hid = hid; take(); } }],
+        '輪到你抓牌：點發亮的兩墩，或按「抓牌」', ftip('grab'));
+      NET.wait('grab', [0], take);
+    } else if (p !== 0 && isHuman(p)){
+      G.deal.grab = p; HOST.grabSeat = p; HOST.onGrab = take; NET.wait('grab', [p], take); V.render(G);
+    } else later(take, reduce ? 60 : 230);
   };
   next();
+}
+const AUTOGRAB = { hid:null };
+
+// ================= 洗牌：開局前把牌攤在桌上，按住拖曳就能洗 =================
+const SHUF = { group:null, tiles:[], drag:null, dragging:false, last:null, building:false, auto:0, sound:0 };
+function startShufflePile(){
+  clearShufflePile();
+  const g = new THREE.Group(); scene.add(g); SHUF.group = g; SHUF.tiles = [];
+  for (let i=0;i<136;i++){
+    const o = new THREE.Group(), m = tileMesh(0, 'hidden');
+    m.rotation.x = Math.PI/2; o.add(m); o.scale.setScalar(WALL_S);
+    const r = Math.sqrt(Math.random()) * 6.2, a = Math.random() * Math.PI * 2;
+    o.position.set(Math.cos(a)*r, TD*WALL_S/2 + (i % 4) * 0.004, Math.sin(a)*r);
+    o.rotation.y = Math.random() * Math.PI * 2;
+    o.userData = { vx:0, vz:0, vr:0 };
+    g.add(o); SHUF.tiles.push(o);
+  }
+  renderer.domElement.style.touchAction = 'none';
+}
+function clearShufflePile(){
+  if (SHUF.group) scene.remove(SHUF.group);
+  Object.assign(SHUF, { group:null, tiles:[], drag:null, dragging:false, last:null, building:false, auto:0 });
+  if (renderer) renderer.domElement.style.touchAction = '';
+}
+function stepShuffle(){
+  if (!SHUF.group || SHUF.building) return;
+  const now = performance.now(), auto = now < SHUF.auto;
+  let moving = 0;
+  for (const o of SHUF.tiles){
+    const u = o.userData, x = o.position.x, z = o.position.z;
+    if (auto){ const r = Math.hypot(x, z) || 1; u.vx += (-z/r) * 0.05 + (Math.random()-.5) * 0.05; u.vz += (x/r) * 0.05 + (Math.random()-.5) * 0.05; u.vr += (Math.random()-.5) * 0.03; }
+    if (SHUF.drag){
+      const dx = x - SHUF.drag.x, dz = z - SHUF.drag.z, d = Math.hypot(dx, dz);
+      if (d < 2.2){ const k = 1 - d/2.2; u.vx += SHUF.drag.dx * 0.32 * k + (Math.random()-.5) * 0.04 * k; u.vz += SHUF.drag.dz * 0.32 * k + (Math.random()-.5) * 0.04 * k; u.vr += (Math.random()-.5) * 0.1 * k; }
+    }
+    o.position.x += u.vx; o.position.z += u.vz; o.rotation.y += u.vr;
+    u.vx *= 0.86; u.vz *= 0.86; u.vr *= 0.88;
+    const r = Math.hypot(o.position.x, o.position.z);
+    if (r > 6.6){ o.position.x *= 6.6/r; o.position.z *= 6.6/r; u.vx *= -0.3; u.vz *= -0.3; }
+    moving += Math.abs(u.vx) + Math.abs(u.vz);
+  }
+  if (SHUF.drag){ SHUF.drag.dx *= 0.4; SHUF.drag.dz *= 0.4; }
+  if (moving > 0.8 && now - SHUF.sound > 90){ SHUF.sound = now; shuffleSound(Math.min(1, moving / 12)); }
+}
+// 洗好後把牌堆成四面牌牆
+function buildWalls(cb){
+  if (!SHUF.group){ cb(); return; }
+  SHUF.building = true;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const slots = [];
+  for (let p=0;p<4;p++) for (let j=0;j<17;j++) for (let l=0;l<2;l++){
+    const th = p * Math.PI / 2, lx = (-8 + j) * STEP * WALL_S, lz = WALL_R, y = (TD/2 + l*TD) * WALL_S;
+    slots.push({ x: lx*Math.cos(th) + lz*Math.sin(th), z: -lx*Math.sin(th) + lz*Math.cos(th), y, th });
+  }
+  const order = SHUF.tiles.map((o, i) => i).sort(() => Math.random() - 0.5);
+  const anim = SHUF.tiles.map((o, i) => {
+    const sl = slots[order[i]];
+    let th = sl.th; while (th - o.rotation.y > Math.PI/2) th -= Math.PI; while (o.rotation.y - th > Math.PI/2) th += Math.PI;
+    return { o, from:{ x:o.position.x, y:o.position.y, z:o.position.z, r:o.rotation.y }, to:{ x:sl.x, y:sl.y, z:sl.z, r:th }, delay:(order[i] % 34) * 12 };
+  });
+  const t0 = performance.now(), dur = reduce ? 1 : 520;
+  let clicks = 0;
+  const tick = now => {
+    let done = true;
+    for (const a of anim){
+      const e = Math.max(0, Math.min(1, (now - t0 - a.delay) / dur)), k = 1 - Math.pow(1 - e, 3);
+      if (e < 1) done = false;
+      a.o.position.set(a.from.x + (a.to.x - a.from.x)*k, a.from.y + (a.to.y - a.from.y)*k + Math.sin(e*Math.PI) * 0.6, a.from.z + (a.to.z - a.from.z)*k);
+      a.o.rotation.y = a.from.r + (a.to.r - a.from.r)*k;
+    }
+    if (now - t0 > clicks * 90 && clicks < 9){ clicks++; clack(0.35); }
+    if (done){ tickers.splice(tickers.indexOf(tick), 1); clearShufflePile(); cb(); }
+  };
+  tickers.push(tick);
+}
+function shuffleBar(onDone){
+  setBar([{ label:'自動洗牌', cls:'chi', fn: () => { SHUF.auto = performance.now() + 1600; } },
+          { label:'洗好了', cls:'pon', fn: () => { setBar([], '等其他人洗好牌…'); onDone(); } }],
+    '洗牌：按住桌面拖曳，把牌洗亂', ftip('shuffle'));
+}
+function shufflePhase(cb){
+  const tok = gameToken;
+  startShufflePile();
+  const humans = [0,1,2,3].filter(isHuman);
+  HOST.shufDone = new Set();
+  let finished = false;
+  const finish = () => {
+    if (finished || tok !== gameToken) return; finished = true;
+    HOST.onShuf = null; NET.clear(); V.hideActions();
+    NET.ev({ k:'bw' });
+    say('peng', '砌牌囉！每家面前 17 墩、每墩 2 張。');
+    buildWalls(() => { if (tok === gameToken) cb(); });
+  };
+  const mark = s => { if (finished) return; HOST.shufDone.add(s); if (humans.every(h => HOST.shufDone.has(h))) finish(); else NET.dirty(); };
+  HOST.onShuf = mark;
+  say('que', '開局前先洗牌。按住桌面拖曳就能把牌洗亂，洗好了按「洗好了」。');
+  shuffleBar(() => mark(0));
+  NET.wait('shuffle', humans, finish);
 }
 
 // ================= 介面 =================
 const SEAT_PT = [[0,1.8,6.5],[6.5,1.8,0],[0,1.8,-6.5],[-6.5,1.8,0]];
 const actionsEl = document.getElementById('actions');
-function setBar(btns, note){
+function setBar(btns, note, tip){
   actionsEl.innerHTML = '';
+  if (tip && FRIENDLY){ const t = document.createElement('div'); t.className = 'ftip'; t.textContent = tip; actionsEl.appendChild(t); }
   if (note){ const s = document.createElement('span'); s.className = 'note'; s.textContent = note; actionsEl.appendChild(s); }
   if (btns.length){
     const row = document.createElement('div'); row.className = 'btnrow';
@@ -1753,8 +2024,33 @@ function setBar(btns, note){
     });
     actionsEl.appendChild(row);
   }
-  actionsEl.classList.toggle('show', !!(btns.length || note));
+  actionsEl.classList.toggle('show', !!(btns.length || note || (tip && FRIENDLY)));
   placeActionBar();
+}
+// ---- 新手友善模式：在畫面下方用小字說明現在可以做什麼 ----
+let FRIENDLY = true;
+try { FRIENDLY = localStorage.getItem('hm-friendly') !== 'off'; } catch (e) {}
+function ftip(kind, d){
+  if (!FRIENDLY) return '';
+  if (kind === 'pick') return '骰莊：每個人擲三顆骰子，點數加起來最大的人，當第一個莊家。';
+  if (kind === 'break') return '莊家擲三顆骰子，點數決定從哪一家的牌牆「開門」開始抓牌。';
+  if (kind === 'shuffle') return '洗牌：按住桌面拖曳，就能把牌推來推去洗亂。也可以按「自動洗牌」。';
+  if (kind === 'grab') return '抓牌：從發亮的地方開始，一次抓兩墩（4 張），四個人輪流抓四輪，每人 16 張。';
+  if (kind === 'turn'){
+    if (d.tsumo) return '胡牌的條件是「五組＋一對」。你剛摸到的牌剛好湊齊了，按「自摸」就贏了！';
+    if (d.kans.length) return '手上有四張一樣的牌，可以「槓」：把四張亮出來，再從牌牆尾巴補一張。不想槓也可以直接打牌。';
+    return '輪到你出牌：選一張最用不到的牌打出去，例如沒有同伴的字牌或孤張。不確定就按「問老師」。';
+  }
+  if (kind === 'claim'){
+    const t = d.tile, L = [];
+    if (d.h.ron) L.push('這張牌剛好讓你湊齊「五組＋一對」，按「胡」就贏了！');
+    if (d.h.kan) L.push(`你手上有三張${tn(t)}，加上這張變四張一樣的，可以「槓」，槓完從牌牆尾巴補一張。`);
+    if (d.h.pon) L.push(`你手上有兩張${tn(t)}，加上這張就是三張一樣的（刻子），可以「碰」。`);
+    if (d.h.chi.length) L.push(`「吃」只能吃上家打的牌：和你手上的兩張湊成連號，例如${seqName([...d.h.chi[0], t])}。`);
+    L.push('不想要就按「過」。');
+    return L.join(' ');
+  }
+  return '';
 }
 V = {
   render(g){ render(g); NET.dirty(); },
@@ -1767,7 +2063,7 @@ V = {
     const btns = [];
     if (o.tsumo) btns.push({ label:'自摸', cls:'hu', fn: humanTsumo });
     o.kans.forEach(k => btns.push({ label:'槓 ' + tn(k.tile), cls:'kan', fn: () => humanSelfKan(k) }));
-    setBar(btns, btns.length ? '' : (matchMedia('(pointer: coarse)').matches ? '輪到你：點一下選牌，再點一次打出' : '輪到你：點一張牌打出'));
+    setBar(btns, btns.length ? '' : (matchMedia('(pointer: coarse)').matches ? '輪到你：點一下選牌，再點一次打出' : '輪到你：點一張牌打出'), ftip('turn', o));
   },
   showClaimActions(h){
     const btns = [];
@@ -1776,9 +2072,10 @@ V = {
     if (h.pon) btns.push({ label:'碰', cls:'pon', fn: () => humanClaim('pon') });
     h.chi.forEach(o => btns.push({ label:'吃 ' + seqName([...o, G.ctx.tile]), cls:'chi', fn: () => humanClaim('chi', o) }));
     btns.push({ label:'過', cls:'pass', fn: () => humanClaim('pass') });
-    setBar(btns, `${POS[G.ctx.from]}打出${tn(G.ctx.tile)}`);
+    setBar(btns, `${POS[G.ctx.from]}打出${tn(G.ctx.tile)}`, ftip('claim', { tile:G.ctx.tile, h }));
   },
-  hideActions(){ setBar([], ''); },
+  hideActions(){ setBar([], ''); grabFn = null; sendHover(-1); showTileName(null); },
+  shuffle(cb){ shufflePhase(cb); },
   highlight(t){ hintTile = t; if (G) render(G); sfxChime([880, 1175]); },
   diceAndDeal(cb){ diceAndDeal(cb); },
   pickDealer(cb){ pickDealer(cb); },
@@ -1865,7 +2162,7 @@ V = {
   onNewGame(){
     document.getElementById('result').hidden = true;
     hintTile = null; selectedKey = null;
-    if (scene){ clearDice(); buildLabels(); }
+    if (scene){ clearDice(); clearShufflePile(); buildLabels(); }
     if (!R.needPick){ say('que', `${handName()}開始。${R.streak ? `莊家連莊第 ${R.streak} 次。` : ''}`); say('peng', '這把一定要胡！'); }
   },
   intro(cb){
@@ -1927,11 +2224,33 @@ function slide(vol){
   noise(ctx, ctx.currentTime, 0.18, 'bandpass', 500, 1600, 0.9, 0.12*vol);
 }
 // 骰子撞桌：越後面越小聲
-function diceHit(vol){
+// 骰子：先在手裡搖幾下，丟到桌上後每顆各自彈跳、越彈越小聲越密
+function diceRattle(dur){
   if (!sfxOn) return; const ctx = audio(); if (!ctx) return;
-  const t = ctx.currentTime;
-  for (let i=0;i<3;i++){ const d = i*0.025 + Math.random()*0.02; noise(ctx, t + d, 0.035, 'bandpass', 2400 + Math.random()*1200, 1400, 2, 0.35*vol + 0.05); }
-  tone(ctx, t, 'triangle', 1500 + Math.random()*400, 900, 0.04, 0.1*vol + 0.02);
+  const t0 = ctx.currentTime;
+  const click = (t, vol, pitch) => {
+    noise(ctx, t, 0.018, 'bandpass', 4200 * pitch, 3000 * pitch, 3.5, 0.55 * vol);
+    tone(ctx, t, 'sine', 2600 * pitch, 2300 * pitch, 0.035, 0.07 * vol);
+    tone(ctx, t, 'triangle', 190, 120, 0.03, 0.12 * vol);   // 敲到桌面的悶聲
+  };
+  for (let i=0;i<5;i++) click(t0 + i * 0.03 + Math.random() * 0.02, 0.25, 1.1 + Math.random() * 0.2);   // 骰子在手裡互撞
+  for (let d=0; d<3; d++){
+    let t = t0 + 0.2 + d * 0.035 + Math.random() * 0.05, gap = 0.2 + Math.random() * 0.06, vol = 1;
+    const pitch = 0.85 + Math.random() * 0.35;
+    while (vol > 0.06 && t < t0 + dur + 0.1){
+      click(t, vol, pitch * (0.95 + Math.random() * 0.1));
+      t += gap; gap *= 0.68 + Math.random() * 0.08; vol *= 0.62;
+    }
+  }
+}
+// 洗牌時牌互相碰撞的「嘩啦」聲
+function shuffleSound(level){
+  if (!sfxOn) return; const ctx = audio(); if (!ctx) return;
+  const t = ctx.currentTime, n = 2 + Math.floor(level * 4);
+  for (let i=0;i<n;i++){
+    const d = Math.random() * 0.08, f = 1400 + Math.random() * 1400;
+    noise(ctx, t + d, 0.03, 'bandpass', f, f * 0.7, 2.2, 0.12 + level * 0.18);
+  }
 }
 // 吃、碰、槓：短促的喊聲音效
 function callSound(kind){
@@ -2236,7 +2555,7 @@ function hostInstall(){
 }
 function hostWaitSeats(){
   const pr = HOST.prompt; if (!pr) return [];
-  return pr.seats.filter(s => !(pr.kind === 'claim' && G && G.ctx && G.ctx.resp && G.ctx.resp[s]));
+  return pr.seats.filter(s => !(pr.kind === 'claim' && G && G.ctx && G.ctx.resp && G.ctx.resp[s]) && !(pr.kind === 'shuffle' && HOST.shufDone && HOST.shufDone.has(s)));
 }
 function hostPublic(seq){
   const d = G.deal && G.deal.active ? G.deal : null;
@@ -2246,11 +2565,12 @@ function hostPublic(seq){
     pl: G.players.map(P => [P.hand.length, encS(P.discards), P.melds.map(m => [m.type, encS(m.tiles), m.from == null ? -1 : m.from])]),
     la: G.last ? [G.last.tile, G.last.from] : null,
     cx: G.phase === 'humanClaim' && G.ctx ? [G.ctx.tile, G.ctx.from] : null,
-    dk: d ? [d.shown.slice(), d.start, d.taken.size] : null,
+    dk: d ? [d.shown.slice(), d.start, d.taken.size, d.grab == null ? -1 : d.grab] : null,
     oh: G.phase === 'over' ? G.players.map(P => encS(P.hand)) : null,
     w: hostWaitSeats(),
     dl: HOST.deadline ? Math.max(0, HOST.deadline - Date.now()) : 0,
     sc: SCORES.slice(), nm: NAMES.slice(), ci: HOST.seats.map(x => x ? x.cid : ''),
+    hv: [0,1,2,3].map(s => CTRL[s] === 'ai' ? HOVER[s] : null),
     ev: HOST.evq.splice(0)
   };
 }
@@ -2266,6 +2586,8 @@ function hostPrivate(s){
       const h = G.ctx.hum[s]; o.p = { k:'c', i:HOST.pid, r:h.ron ? 1 : 0, n:h.pon ? 1 : 0, g:h.kan ? 1 : 0, c:h.chi };
     }
     else if (pr.kind === 'roll') o.p = { k:'r', i:HOST.pid, w:HOST.rollWhy };
+    else if (pr.kind === 'grab' && HOST.grabSeat === s) o.p = { k:'g', i:HOST.pid };
+    else if (pr.kind === 'shuffle' && !(HOST.shufDone && HOST.shufDone.has(s))) o.p = { k:'s', i:HOST.pid };
   }
   return o;
 }
@@ -2298,6 +2620,8 @@ async function hostOnAct(msg){
   else if (a.a === 'k'){ const k = G.phase === 'human' && G.turn === s && G.turnOpts && G.turnOpts.kans.find(x => x.tile === a.t); if (k) selfKan(s, k); }
   else if (a.a === 'c') playerClaim(s, String(a.c), a.o);
   else if (a.a === 'r'){ if (HOST.rollSeat === s && HOST.onRoll) HOST.onRoll(); }
+  else if (a.a === 'g'){ if (HOST.grabSeat === s && HOST.onGrab) HOST.onGrab(); }
+  else if (a.a === 'sh'){ if (HOST.onShuf) HOST.onShuf(s); }
 }
 function hostOnPeers(ch){
   for (const p of ch.peers){
@@ -2311,6 +2635,7 @@ function hostOnPeers(ch){
     }
     if (s <= 0) continue;
     const st = HOST.seats[s];
+    if (MP.started && st.peer === p.peer && Number.isInteger(pr.hv)) HOVER[s] = Math.max(-1, Math.min(20, pr.hv));
     if (st.peer === p.peer && st.pk === pr.pk) continue;
     if (st.peer) delete HOST.peerSeat[st.peer];
     st.peer = p.peer; st.pk = pr.pk; HOST.peerSeat[p.peer] = s; HOST.keys[s] = null;
@@ -2338,9 +2663,12 @@ function hostOnPeers(ch){
 }
 // 等待中的玩家斷線：馬上由電腦替他做決定
 function hostSeatGone(s){
+  HOVER[s] = -1;
   const pr = HOST.prompt; if (!pr || !pr.seats.includes(s)) return;
   if (pr.kind === 'claim') playerClaim(s, 'pass');
   else if (pr.kind === 'roll'){ if (HOST.onRoll) HOST.onRoll(); }
+  else if (pr.kind === 'grab'){ if (HOST.onGrab) HOST.onGrab(); }
+  else if (pr.kind === 'shuffle'){ if (HOST.onShuf) HOST.onShuf(s); }
   else { const f = HOST.onTimeout; NET.clear(); if (f) f(); }
 }
 function hostLobby(){
@@ -2365,6 +2693,21 @@ function hostBegin(){
   audio();
   hostLobby();
   newGame();
+}
+
+// 把自己正在摸哪一張牌送給同房的人（最多每 0.12 秒一次）
+const HV = { last:-1, sent:-1, t:null };
+function sendHover(i){
+  if (!NET.role || !MP.room || !MP.started) return;
+  HV.last = i;
+  if (HV.t) return;
+  const flush = () => {
+    HV.t = null;
+    if (HV.last === HV.sent) return;
+    HV.sent = HV.last; MP.room.presence({ hv:HV.sent }).catch(() => {});
+    HV.t = setTimeout(flush, 120);
+  };
+  flush();
 }
 
 // ---------- 加入的玩家 ----------
@@ -2399,6 +2742,14 @@ function clientOnPeers(ch){
   } else if (CL.sawHost && !CL.hostGoneT){
     CL.hostGoneT = setTimeout(() => mpEnded('房主離開了，這場對局結束。'), 6000);
   }
+  // 其他真人玩家正在摸哪一張牌
+  if (MP.started && Array.isArray(CL.ci)){
+    for (const p of ch.peers){
+      if (p.sameTab || !p.presence || !Number.isInteger(p.presence.hv)) continue;
+      const abs = p.presence.role === 'host' ? 0 : CL.ci.indexOf(p.presence.cid);
+      if (abs >= 0) HOVER[CL.rot(abs)] = Math.max(-1, Math.min(20, p.presence.hv));
+    }
+  }
 }
 function clientOnLobby(msg){
   if (msg.peer !== CL.hostPeer || !msg.data || !Array.isArray(msg.data.s) || MP.started) return;
@@ -2430,7 +2781,8 @@ function clientApply(d, me, pv){
   if (!MP.started){ MP.started = true; $('start').hidden = true; }
   const seat = me > 0 ? me : 0, spect = me <= 0;
   const rot = s => (s - seat + 4) % 4, abs = i => (i + seat) % 4;
-  CL.seat = seat; CL.spect = spect; CL.rot = rot;
+  CL.seat = seat; CL.spect = spect; CL.rot = rot; CL.ci = Array.isArray(d.ci) ? d.ci.slice(0, 4) : null;
+  if (Array.isArray(d.hv)) d.hv.forEach((v, s) => { if (Number.isInteger(v)) HOVER[rot(s)] = Math.max(-1, Math.min(20, v)); });
   const nm = Array.isArray(d.nm) ? d.nm.map(x => cleanName(x) || '玩家') : ['', '', '', ''];
   for (let i=0;i<4;i++){ NAMES[i] = i === 0 && !spect ? '你' : nm[abs(i)]; SCORES[i] = Number(d.sc && d.sc[abs(i)]) || 0; }
   const [w, dl, sd, st, np] = Array.isArray(d.r) ? d.r : [0,0,0,0,1];
@@ -2438,7 +2790,7 @@ function clientApply(d, me, pv){
   Object.assign(R, { wind:w|0, dealer:rot(dl|0), startDealer:rot(sd|0), streak:st|0, needPick:!!np, over:false });
   if (d.h !== CL.hid){
     CL.hid = d.h; CL.pendingEnd = null; CL.ctx = null; CL.donePid = null; CL.promptKey = ''; CL.lastPh = '';
-    $('result').hidden = true; hintTile = null; selectedKey = null; clearDice(); V.hideActions();
+    $('result').hidden = true; hintTile = null; selectedKey = null; clearDice(); clearShufflePile(); V.hideActions();
     if (d.ph === 'pick'){
       say('que', '連線對局開始！一將從「東風東」打到「北風北」。先「骰莊」：每個人擲三顆骰子，點數最大的人當第一個莊家。');
       say('peng', '輪到你的時候，下面會出現「擲骰子」！');
@@ -2449,6 +2801,8 @@ function clientApply(d, me, pv){
     CL.introHid = d.h; V.intro(() => {});
     say('que', `${handName()}開始。${R.streak ? `莊家連莊第 ${R.streak} 次。` : ''}`); say('peng', '這把一定要胡！');
   }
+  if (d.ph === 'shuffle' && CL.shufHid !== d.h){ CL.shufHid = d.h; startShufflePile(); say('que', '開局前先洗牌。按住桌面拖曳就能把牌洗亂，洗好了按「洗好了」。'); }
+  if (d.ph !== 'shuffle' && SHUF.group && !SHUF.building) buildWalls(() => {});
   if (d.ph === 'deal' && CL.lastPh !== 'deal') say('peng', '抓牌囉！每次抓兩墩、4 張，輪四圈！');
   if (CL.lastPh === 'deal' && d.ph !== 'deal') say('que', `每人都有 16 張了。莊家${R.dealer === 0 ? '（你）' : NAMES[R.dealer]}再摸一張變 17 張，然後先打出一張。`);
   CL.lastPh = d.ph;
@@ -2469,8 +2823,10 @@ function clientApply(d, me, pv){
   if (Array.isArray(d.dk)){
     const [shown, start, k] = d.dk, taken = new Set();
     let idx = start | 0;
-    for (let j=0;j<Math.min(68, k|0);j++){ taken.add(rot(Math.floor(idx/17))*17 + idx%17); idx = (idx + 67) % 68; }
-    G.deal = { active:true, shown:[0,1,2,3].map(i => (shown && shown[abs(i)]) | 0), taken, start };
+    const mapIdx = a => rot(Math.floor(a/17))*17 + a%17;
+    for (let j=0;j<Math.min(68, k|0);j++){ taken.add(mapIdx(idx)); idx = (idx + 67) % 68; }
+    G.deal = { active:true, shown:[0,1,2,3].map(i => (shown && shown[abs(i)]) | 0), taken, start, next:[mapIdx(idx), mapIdx((idx + 67) % 68)],
+               grab:p && p.k === 'g' && p.i !== CL.donePid ? 0 : null };
     G.dealOrder = [0,1,2,3].map(i => i === 0 && pv && pv.do ? decS(pv.do) : new Array(16).fill(0));
   }
   if (Array.isArray(d.cx)) G.ctx = { tile:d.cx[0], from:rot(d.cx[1]), h:null };
@@ -2496,6 +2852,7 @@ function clientEvent(e, rot){
   else if (e.k === 's' && typeof e.x === 'string') V.sfx(e.x, p);
   else if (e.k === 'c') V.celebrate(p);
   else if (e.k === 'cd') clearDice();
+  else if (e.k === 'bw'){ if (SHUF.group && !SHUF.building) buildWalls(() => {}); }
   else if (e.k === 'r' && Array.isArray(e.v)) rollDice(e.v.slice(0, 3).map(n => Math.min(6, Math.max(1, n | 0))), () => {});
   else if (e.k === 'bk' && Array.isArray(e.v)) explainBreak(e.v.slice(0, 3).map(n => Math.min(6, Math.max(1, n | 0))));
   else if (e.k === 'pk'){
@@ -2515,9 +2872,17 @@ function clientPrompt(active){
     else if (G.turnOpts.kans.length) say('que', `你可以槓${tn(G.turnOpts.kans[0].tile)}喔。槓了會多摸一張牌，但手牌也會少一點彈性。`);
   } else if (active.k === 'c' && G.ctx && G.ctx.h){
     V.showClaimActions(G.ctx.h); teacherOnClaimOption(G.ctx.h, G.ctx);
+  } else if (active.k === 'g'){
+    const go = () => { clientAct({ a:'g' }); V.hideActions(); };
+    if (AUTOGRAB.hid === CL.hid){ go(); return; }
+    setBar([{ label:'抓牌', cls:'pon', fn: go }, { label:'幫我抓完', cls:'pass', fn: () => { AUTOGRAB.hid = CL.hid; go(); } }],
+      '輪到你抓牌：點發亮的兩墩，或按「抓牌」', ftip('grab'));
+    grabFn = go;
+  } else if (active.k === 's'){
+    shuffleBar(() => clientAct({ a:'sh' }));
   } else if (active.k === 'r'){
     setBar([{ label:'🎲 擲骰子', cls:'pon', fn: () => { clientAct({ a:'r' }); V.hideActions(); } }],
-      active.w === 'pick' ? '骰莊：輪到你擲骰子' : '你是莊家，擲骰子決定開門位置');
+      active.w === 'pick' ? '骰莊：輪到你擲骰子' : '你是莊家，擲骰子決定開門位置', ftip(active.w === 'pick' ? 'pick' : 'break'));
     if (active.w === 'break') say('que', '這局你是莊家。要擲三顆骰子，點數加起來決定從哪一家的牌牆「開門」抓牌。');
     else say('peng', '輪到你擲了！');
   }
@@ -2651,6 +3016,7 @@ setInterval(() => {
 (async function boot(){
   try { await Promise.race([Promise.all([document.fonts.load(`900 60px "Noto Sans TC"`, '一二三四五六七八九萬東南西北中發白'), document.fonts.load(`700 30px "Noto Sans TC"`, '剩餘下家對家上家阿福小玉老陳')]), new Promise(r => setTimeout(r, 3000))]); } catch (e) {}
   try { await Promise.race([document.fonts.load('80px "Yuji Boku"', '東南西北風開局'), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+  try { await window.TK_READY; await Promise.race([document.fonts.load('900 60px "momochidori"', '一二三四五六七八九萬東南西北中發白'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
   init3D();
   // 只有在 claude.ai 上打開時才有即時連線；其他地方 roomReady 會是 null
   // 在 claude.ai 上用頁面內建的即時連線；其他網址（例如 GitHub Pages）用自己的 Cloudflare 伺服器
@@ -2667,6 +3033,15 @@ setInterval(() => {
   $('btnBegin').addEventListener('click', hostBegin);
   $('btnLeave').addEventListener('click', mpLeave);
   $('btnHome').addEventListener('click', mpLeave);
+  const fb = $('btnFriendly');
+  const syncFriendly = () => { fb.setAttribute('aria-pressed', FRIENDLY); fb.title = FRIENDLY ? '新手友善模式：開' : '新手友善模式：關'; };
+  fb.addEventListener('click', () => {
+    FRIENDLY = !FRIENDLY; syncFriendly();
+    try { localStorage.setItem('hm-friendly', FRIENDLY ? 'on' : 'off'); } catch (e) {}
+    say('que', FRIENDLY ? '新手友善模式開啟了！打牌時畫面下方會有小字告訴你現在可以做什麼，滑到牌上也會顯示牌名。' : '新手友善模式關掉了，現在是正常遊玩。');
+    document.querySelectorAll('#actions .ftip').forEach(el => { el.hidden = !FRIENDLY; });
+  });
+  syncFriendly();
   $('btnSolo').focus();
 })();
 </script>
