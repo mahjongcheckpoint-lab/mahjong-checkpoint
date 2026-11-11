@@ -247,7 +247,9 @@ header > *{pointer-events:auto}
 #avUnlock{position:absolute;left:50%;top:150px;transform:translateX(-50%);pointer-events:auto;border:0;border-radius:999px;padding:10px 18px;background:#e3b64d;color:#1c1a12;font:900 14px var(--sans);box-shadow:var(--shadow);cursor:pointer}
 .avstrip{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px}
 .avstrip{flex-wrap:nowrap}
-.commrow{display:flex;justify-content:center;margin-top:12px}
+.commrow{display:flex;justify-content:center;margin:12px 0 16px}
+.invite{display:flex;flex-direction:column;align-items:center;gap:4px;margin:4px 0 10px}
+#inviteMsg{font-size:12px;font-weight:700;color:#2f8f5b;min-height:16px}
 .avstrip:empty{display:none}
 .avstrip .av-tile{position:relative;left:auto;right:auto;top:auto;transform:none;width:128px;height:96px;flex:none}
 .avstrip .av-tile .ava{font-size:28px}
@@ -386,7 +388,7 @@ header > *{pointer-events:auto}
         <p class="lead">黃美雀和黃美碰會在旁邊看你打牌，<br>隨時告訴你怎麼打更好。</p>
         <div class="modes">
           <button class="mode solo" id="btnSolo" type="button"><b>單人遊玩</b><span>和三位電腦對手練習</span></button>
-          <button class="mode" id="btnMulti" type="button"><b>多人對戰</b><span>開房間，邀朋友一起打</span></button>
+          <button class="mode" id="btnMulti" type="button"><b>多人對戰</b><span>開房間或加入房間，與朋友一起開打</span></button>
         </div>
         <div id="resumeBox" hidden><button class="btn ask wide" id="btnResume" type="button"></button><button class="linkbtn" id="btnResumeDrop" type="button">不用了，清除這個房間</button></div>
       </section>
@@ -401,6 +403,7 @@ header > *{pointer-events:auto}
       <section id="stLobby" hidden>
         <div class="lab">房號</div>
         <div class="code" id="lobbyCode"></div>
+        <div class="invite"><button class="btn" id="btnInvite" type="button">📨 邀請朋友</button><span id="inviteMsg" role="status"></span></div>
         <div class="hint2" id="lobbyHint"></div>
         <ol class="seats" id="lobbySeats"></ol>
         <div id="avBox" hidden><div class="commrow"><button class="btn toggle" id="btnCommLobby" type="button" role="switch" aria-pressed="false" aria-checked="false">語音視訊</button></div><div class="avstrip" id="avLobby"></div></div>
@@ -3717,10 +3720,29 @@ async function mpRoomApi(){
   $('btnCreate').disabled = $('btnJoin').disabled = !r;
   return r;
 }
+// 邀請朋友：複製一段邀請文字（含網站連結和房號）
+function inviteLink(){
+  if (window.claude || !/^https?:$/.test(location.protocol)) return '';
+  return location.origin + location.pathname + '?room=' + MP.code.toUpperCase();
+}
+async function inviteFriends(){
+  const link = inviteLink(), code = MP.code.toUpperCase();
+  const text = `盡情打麻將吧！我邀請你加入麻將雀碰的行列${link ? '：' + link : ''}\n房間號碼是 ${code}`;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {}
+  if (!ok){
+    try {
+      const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); ta.remove();
+    } catch (e) {}
+  }
+  $('inviteMsg').textContent = ok ? '已複製邀請訊息，貼給朋友就可以了！' : `沒辦法自動複製，請手動傳：${text.replace('\n', ' ')}`;
+}
 function enterRoomUi(isHost){
   showStart('stLobby');
   $('lobbyCode').textContent = MP.code.toUpperCase();
-  $('lobbyHint').textContent = isHost ? '把房號告訴朋友：打開這個頁面，按「多人對戰」，輸入房號就能加入。牌局在房主的畫面上進行，打牌時請房主不要切到別的 App 或關螢幕。' : '已加入房間。';
+  $('lobbyHint').textContent = isHost ? '按「邀請朋友」複製邀請訊息貼給朋友，或直接告訴他房號。牌局在房主的畫面上進行，打牌時請房主不要切到別的 App 或關螢幕。' : '已加入房間。';
+  $('inviteMsg').textContent = '';
   $('btnBegin').hidden = !isHost;
   $('btnNew').innerHTML = '離開<span class="long">房間</span>';
 }
@@ -3950,6 +3972,12 @@ document.addEventListener('visibilitychange', () => {
   $('btnSolo').addEventListener('click', () => { audio(); $('start').hidden = true; newGame(); });
   $('btnMulti').addEventListener('click', () => { audio(); showStart('stMulti'); $('mpMsg').textContent = ''; mpRoomApi(); ($('mpName').value ? $('btnCreate') : $('mpName')).focus(); });
   $('btnBack').addEventListener('click', () => { showStart('stMode'); $('btnMulti').focus(); });
+  $('btnInvite').addEventListener('click', inviteFriends);
+  // 從邀請連結打開：直接進到多人對戰，房號已經填好
+  try {
+    const rc = (new URLSearchParams(location.search).get('room') || '').toLowerCase();
+    if (/^[a-z0-9]{4}$/.test(rc)){ $('mpCode').value = rc.toUpperCase(); showStart('stMulti'); $('mpMsg').textContent = `朋友邀請你加入房間 ${rc.toUpperCase()}，輸入暱稱後按「加入」。`; }
+  } catch (e) {}
   $('btnCreate').addEventListener('click', mpCreate);
   $('btnJoin').addEventListener('click', mpJoin);
   $('mpCode').addEventListener('keydown', e => { if (e.key === 'Enter') mpJoin(); });
