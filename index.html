@@ -1558,19 +1558,26 @@ function renderSkinPanel(){
   });
 }
 
-function makeLabel(text, active){
-  const cv = document.createElement('canvas'); cv.width = 420; cv.height = 80; const g = cv.getContext('2d');
-  g.fillStyle = active ? 'rgba(201,150,43,.95)' : 'rgba(20,30,25,.72)';
-  g.beginPath(); g.roundRect ? g.roundRect(4,8,412,64,32) : g.rect(4,8,412,64); g.fill();
-  g.fillStyle = active ? '#1c1a12' : '#f3efe2'; g.font = `700 34px ${FONT}`;
-  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 210, 41);
+// 名牌：兩行（位置＋門風／名字），浮在桌子外面、對著鏡頭
+function makeLabel(p, active){
+  const cv = document.createElement('canvas'); cv.width = 480; cv.height = 210; const g = cv.getContext('2d');
+  const wind = R.needPick ? '' : HONOR[seatWind(p)-27], dealer = !R.needPick && p === R.dealer;
+  g.fillStyle = active ? 'rgba(227,182,77,.97)' : 'rgba(18,28,24,.8)';
+  roundRect(g, 6, 6, 468, 198, 40); g.fill();
+  if (active){ g.strokeStyle = '#fff3c4'; g.lineWidth = 6; roundRect(g, 6, 6, 468, 198, 40); g.stroke(); }
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `700 40px ${FONT}`; g.fillStyle = active ? 'rgba(28,26,18,.75)' : 'rgba(243,239,226,.75)';
+  const line1 = POS[p] + (wind ? '・' + wind : '');
+  const cx = dealer ? 214 : 240;
+  g.fillText(line1, cx, 58);
+  if (dealer){ const w = g.measureText(line1).width; g.fillStyle = '#c62f2b'; g.beginPath(); g.arc(cx + w/2 + 34, 58, 24, 0, Math.PI*2); g.fill(); g.fillStyle = '#fff'; g.font = `900 28px ${FONT}`; g.fillText('莊', cx + w/2 + 34, 59); }
+  g.fillStyle = active ? '#1c1a12' : '#f3efe2'; g.font = `900 76px ${FONT}`; g.fillText(NAMES[p] || '', 240, 140, 430);
   return canvasTex(cv);
 }
 function buildLabels(){
   for (let p=1;p<4;p++){
-    const txt = R.needPick ? `${POS[p]}・${NAMES[p]}` : `${POS[p]}・${NAMES[p]}・${HONOR[seatWind(p)-27]}${p === R.dealer ? '（莊）' : ''}`;
     if (labelTex[p]) labelTex[p].forEach(t => t.dispose());
-    labelTex[p] = [makeLabel(txt, false), makeLabel(txt, true)];
+    labelTex[p] = [makeLabel(p, false), makeLabel(p, true)];
   }
 }
 function init3D(){
@@ -1604,7 +1611,6 @@ function init3D(){
   centerTex = canvasTex(centerCanvas);
   const center = new THREE.Mesh(new THREE.PlaneGeometry(5.7, 5.7), new THREE.MeshStandardMaterial({ map:centerTex, roughness:0.6 }));
   center.rotation.x = -Math.PI/2; center.position.y = 0.02; scene.add(center);
-  buildPlates();
   buildGeometry();
   buildMaterials();
   let savedTable = null; try { savedTable = localStorage.getItem('hm-table'); } catch (e) {}
@@ -1826,6 +1832,11 @@ function render(G){
   for (let p=0;p<4;p++){
     const grp = new THREE.Group(); grp.rotation.y = p*Math.PI/2; dyn.add(grp);
     const P = G.players[p];
+    // 名牌：浮在桌子外面
+    if (p > 0 && labelTex[p]){
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTex[p][G.turn === p && !over && G.phase !== 'pick' ? 1 : 0], depthTest:false }));
+      sp.scale.set(3.2, 1.4, 1); sp.position.set(0, 1.35, p === 2 ? 15.2 : 15.75); sp.renderOrder = 10; grp.add(sp);
+    }
     P.discards.forEach((t,i) => {
       const isLast = G.last && G.last.from === p && i === P.discards.length-1 && (G.phase === 'claims' || G.phase === 'humanClaim');
       flatTile(grp, t, -3*STEP + (i%6)*STEP + TW/2, 3.0 + Math.floor(i/6)*(TH+GAP) + TH/2, isLast ? 'last' : 'face');
@@ -1865,7 +1876,7 @@ function render(G){
       x += 0.2;
     });
   }
-  drawCenter(); drawPlates();
+  drawCenter();
   if (G.phase !== 'human') hintTile = null;
   if (actionsEl.classList.contains('show')) placeActionBar();
 }
@@ -2350,10 +2361,11 @@ function shufflePhase(cb){
 // ================= 介面 =================
 const SEAT_PT = [[0,1.8,6.5],[6.5,1.8,0],[0,1.8,-6.5],[-6.5,1.8,0]];
 const actionsEl = document.getElementById('actions');
+const BAR = { last:null };
 function setBar(btns, note, tip){
   actionsEl.innerHTML = '';
   if (tip && FRIENDLY){ const t = document.createElement('div'); t.className = 'ftip'; t.textContent = tip; actionsEl.appendChild(t); }
-  if (note){ const s = document.createElement('span'); s.className = 'note'; s.textContent = note; actionsEl.appendChild(s); }
+  if (note && !(tip && FRIENDLY)){ const s = document.createElement('span'); s.className = 'note'; s.textContent = note; actionsEl.appendChild(s); }
   if (btns.length){
     const row = document.createElement('div'); row.className = 'btnrow';
     btns.forEach(b => {
@@ -2363,6 +2375,7 @@ function setBar(btns, note, tip){
     actionsEl.appendChild(row);
   }
   actionsEl.classList.toggle('show', !!(btns.length || note || (tip && FRIENDLY)));
+  BAR.last = { btns, note, tip };
   placeActionBar();
 }
 // ---- 新手友善模式：在畫面下方用小字說明現在可以做什麼 ----
@@ -2456,21 +2469,18 @@ V = {
         const r = el('div', 'row');
         const body = el('div', 'body');
         body.append(el('p', 'why', it.why));
-        if (it.groups.length){
+        const nG = it.groups.reduce((a, g) => a + g.length, 0);
+        if (it.groups.length && nG >= 3 && nG < 12){
           const gs = el('div', 'groups');
           it.groups.forEach(gp => { const g = el('span', 'grp'); gp.forEach(t => { const ch = el('span', 'chip mini', tn(t)); ch.dataset.suit = t < 27 ? Math.floor(t/9) : 3; g.appendChild(ch); }); gs.appendChild(g); });
           body.appendChild(gs);
         }
-        if (it.rule) body.append(el('p', 'rule', '規則：' + it.rule));
         r.append(el('b', '', it.name), body, el('span', 'n', it.tai + ' 台'));
         tai.appendChild(r);
       });
       const tr = el('div', 'row total'); tr.append(el('b', '', '合計'), el('span', 'body', ''), el('span', 'n', sc.total + ' 台')); tai.appendChild(tr);
       const amt = BASE + sc.total*PER_TAI;
-      const pay = res.how === 'ron'
-        ? `${res.from === 0 ? '你' : NAMES[res.from]}付：底 ${BASE} ＋ ${sc.total} 台 × ${PER_TAI} ＝ ${amt}`
-        : `其他三家各付：底 ${BASE} ＋ ${sc.total} 台 × ${PER_TAI} ＝ ${amt}` + (sc.dealerExtra ? `（莊家多付 1 台，共 ${amt + PER_TAI}）` : '');
-      tai.appendChild(el('p', 'pay', pay));
+      tr.querySelector('.body').textContent = `底 ${BASE} ＋ ${sc.total} 台 × ${PER_TAI} ＝ ${amt}` + (res.how === 'ron' ? `，${res.from === 0 ? '你' : NAMES[res.from]}付` : '，三家各付') + (sc.dealerExtra ? `（莊家多付 1 台）` : '');
     }
     const board = m.querySelector('.board'); board.innerHTML = '';
     for (let p=0;p<4;p++){
@@ -2488,6 +2498,7 @@ V = {
     m.querySelector('#btnAgain').hidden = NET.role === 'client';
     if (NET.role === 'client') m.querySelector('.nexthand').textContent = (nx.over ? `${res.hand}打完了，一將結束！` : m.querySelector('.nexthand').textContent) + ' 等房主開始下一局。';
     m.hidden = false;
+    V.lastRes = res; V.lastResHid = NET.role === 'client' ? CL.hid : NET.hid;
     m.querySelector('#btnAgain').focus();
   },
   celebrate(p, how){ NET.ev({ k:'c', p }); confetti(p === 0 ? 1 : 0.45); },
@@ -2766,6 +2777,13 @@ document.getElementById('btnRandomSkin').addEventListener('click', () => applySk
 document.getElementById('btnAsk').addEventListener('click', () => { uiTick(); askTeacher(); });
 document.getElementById('btnNew').addEventListener('click', () => NET.role ? mpLeave() : newGame());
 document.getElementById('btnAgain').addEventListener('click', newGame);
+new MutationObserver(() => setTimeout(() => {
+  const m = document.getElementById('result');
+  if (!m.hidden || !G || G.phase !== 'over' || !V.lastRes || V.lastResHid !== (NET.role === 'client' ? CL.hid : NET.hid)) return;
+  const btns = [{ label:'查看結算', cls:'pass', fn: () => { V.hideActions(); V.showResult(V.lastRes); } }];
+  if (NET.role !== 'client') btns.push({ label: V.lastRes.next && V.lastRes.next.over ? '開新的一將' : '下一局', cls:'pon', fn: () => { V.hideActions(); newGame(); } });
+  setBar(btns, NET.role === 'client' ? '等房主開始下一局' : '');
+}, 0)).observe(document.getElementById('result'), { attributes:true, attributeFilter:['hidden'] });
 
 // ================= 多人對戰（claude.ai 即時連線） =================
 // 一位玩家建立房間當「房主」，房主的瀏覽器負責洗牌、發牌和判斷；其他人加入後，
@@ -3951,7 +3969,7 @@ document.addEventListener('visibilitychange', () => {
     FRIENDLY = !FRIENDLY; syncFriendly();
     try { localStorage.setItem('hm-friendly', FRIENDLY ? 'on' : 'off'); } catch (e) {}
     say('que', FRIENDLY ? '新手友善模式開啟了！打牌時畫面下方會有小字告訴你現在可以做什麼，滑到牌上也會顯示牌名。' : '新手友善模式關掉了，現在是正常遊玩。');
-    document.querySelectorAll('#actions .ftip').forEach(el => { el.hidden = !FRIENDLY; });
+    if (BAR.last && actionsEl.classList.contains('show')){ const b = BAR.last; setBar(b.btns, b.note, b.tip || (FRIENDLY ? b.tip : '')); }
   });
   syncFriendly();
   $('btnSolo').focus();
