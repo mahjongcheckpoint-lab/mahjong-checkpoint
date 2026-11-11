@@ -25,7 +25,7 @@ window.TK_READY = new Promise(function(done){
 </script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yuji+Boku&text=%E6%9D%B1%E5%8D%97%E8%A5%BF%E5%8C%97%E9%A2%A8%E9%96%8B%E5%B1%80%E9%80%A3%E8%8E%8A&display=block">
 <style>
-:root{--wide:"momochidori-wide","momochidori",var(--sans);
+:root{
   --bg:#dfe7e2; --bg-deep:#c5d3cb; --surface:rgba(255,255,255,.9); --text:#1d2420; --muted:#56635b; --line:rgba(20,40,30,.14);
   --que:#2b6e57; --que-soft:#e2efe8; --peng:#b8322f; --peng-soft:#f8e3e0; --brass:#b58a2e; --shadow:0 10px 28px rgba(20,40,30,.16);
   --serif:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; --sans:var(--serif); --tile-back:#2b8a5a;
@@ -56,7 +56,7 @@ header{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;ga
 header > *{pointer-events:auto}
 .brand small{font-family:var(--sans);font-size:11px;font-weight:500;letter-spacing:.02em;color:var(--muted);margin-top:2px}
 .brand small b{font-weight:700;color:var(--text)}
-.brand{font-family:var(--wide);font-stretch:expanded;margin-right:auto;display:flex;flex-direction:column;line-height:1.15;font-weight:900;font-size:18px;letter-spacing:.06em;white-space:nowrap;padding:7px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.brand{font-family:"momochidori",var(--sans);margin-right:auto;display:flex;flex-direction:column;line-height:1.15;font-weight:900;font-size:18px;letter-spacing:.06em;white-space:nowrap;padding:7px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
 .btn{font:600 14px/1 var(--sans);padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;box-shadow:var(--shadow);white-space:nowrap}
 .btn.ask{background:var(--que);color:#fff;border-color:transparent}
 .btn:focus-visible,.act:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
@@ -65,7 +65,7 @@ header > *{pointer-events:auto}
   border-radius:16px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--line);
   opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .18s,transform .18s}
 .panel.open{opacity:1;transform:none;pointer-events:auto}
-.panel h3{font-family:var(--wide);font-stretch:expanded;font-weight:900;font-size:16px;margin:0 0 10px}
+.panel h3{font-family:"momochidori",var(--sans);font-weight:900;font-size:16px;margin:0 0 10px}
 #settings{width:min(310px,calc(100% - 32px));padding:10px 12px 12px}
 .tabs{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--line);margin-bottom:10px}
 .tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:700 13px var(--sans);padding:7px 4px;border-radius:999px;cursor:pointer}
@@ -117,7 +117,7 @@ header > *{pointer-events:auto}
 .teacher.talking .avatar{transform:translateY(-3px) scale(1.06)}
 .say{min-width:0;flex:1;display:flex;flex-direction:column;height:100%}
 #t-peng .say{align-items:flex-end}
-.name{font-family:var(--wide);font-stretch:expanded;font-weight:900;font-size:15px;margin:2px 0 6px}
+.name{font-family:var(--serif);font-weight:900;font-size:15px;margin:2px 0 6px}
 .name span{font-family:var(--sans);font-weight:500;font-size:12px;color:var(--muted);margin:0 6px}
 .bubble{border-radius:14px;padding:9px 13px;font-size:14.5px;line-height:1.6;overflow-y:auto;max-height:100%;min-height:0;flex:1 1 auto;width:100%}
 #t-que .bubble{background:var(--que-soft);border-top-left-radius:4px}
@@ -151,7 +151,7 @@ header > *{pointer-events:auto}
 #result{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,10,8,.45);z-index:9;padding:16px}
 #result[hidden]{display:none}
 .card{background:var(--surface);backdrop-filter:blur(8px);border-radius:20px;padding:22px 24px;width:min(600px,100%);max-height:100%;overflow-y:auto;box-shadow:var(--shadow);text-align:center}
-.card h2{font-family:var(--wide);font-stretch:expanded;font-weight:900;font-size:32px;margin:0 0 4px}
+.card h2{font-family:"momochidori",var(--serif);font-weight:900;font-size:32px;margin:0 0 4px}
 .sub{color:var(--muted);margin:0 0 14px}
 .tiles{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:16px}
 .chip{font-family:var(--serif);font-weight:900;font-size:13px;writing-mode:vertical-rl;background:#f7f1e1;color:#1b1b1b;border-radius:5px;padding:6px 3px;
@@ -199,12 +199,12 @@ header > *{pointer-events:auto}
 #start[hidden]{display:none}
 #start .card h1 .en{display:block;font-size:.5em;letter-spacing:.08em;opacity:.7;margin-top:2px}
 .brand .en{font-size:.78em;letter-spacing:.02em}
-#start .card h1{font-family:var(--wide);font-stretch:expanded;font-weight:900;font-size:34px;margin:0 0 10px;letter-spacing:.02em}
+#start .card h1{font-family:"momochidori",var(--sans);font-weight:900;font-size:34px;margin:0 0 10px;letter-spacing:.02em}
 .startcard{width:min(440px,100%);max-height:calc(100% - 8px);overflow-y:auto}
 .lead{color:var(--muted);margin:0 0 18px;line-height:1.6}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mode{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;font-family:var(--sans);box-shadow:var(--shadow)}
-.mode b{font-family:var(--wide);font-stretch:expanded;font-size:18px;font-weight:900}
+.mode b{font-family:"momochidori",var(--sans);font-size:18px;font-weight:900}
 .mode span{font-size:12px;color:var(--muted)}
 .mode.solo{background:var(--que);color:#fff;border-color:transparent}
 .mode.solo span{color:rgba(255,255,255,.85)}
@@ -329,7 +329,6 @@ header > *{pointer-events:auto}
   <div id="stage">
     <header>
       <div id="tkGlyphs" aria-hidden="true" style="position:absolute;left:-9999px;top:0;font-family:momochidori;font-weight:900">一二三四五六七八九萬東南西北中發白雀碰Mahjong風麻將Checkpoint你胡了自摸！阿福小玉老陳牌流局・房主台數表單人遊玩多人對戰</div>
-      <div id="tkGlyphsWide" aria-hidden="true" style="position:absolute;left:-9999px;top:0;font-family:momochidori-wide;font-stretch:expanded;font-weight:900">一二三四五六七八九萬東南西北中發白雀碰Mahjong風麻將Checkpoint你胡了自摸！阿福小玉老陳牌流局・房主台數表單人遊玩多人對戰黃美雀碰姊妹台數表場景設定再來一局下一局</div>
 <div class="brand"><span class="bname">麻將雀碰 <span class="en">Mahjong Checkpoint</span></span><small>底 <b id="stakeBase">100</b>・每台 <b id="stakeTai">20</b></small></div>
       <button class="btn toggle" id="btnFriendly" type="button" role="switch" aria-pressed="true" aria-checked="true">新手友善</button>
       <button class="btn toggle" id="btnComm" type="button" role="switch" aria-pressed="false" aria-checked="false" hidden>通訊</button>
@@ -396,8 +395,8 @@ header > *{pointer-events:auto}
       <section id="stMode">
         <p class="lead">黃美雀和黃美碰會在旁邊看你打牌，<br>隨時告訴你怎麼打更好。</p>
         <div class="modes">
-          <button class="mode solo" id="btnSolo" type="button"><b>單人遊玩</b><span>和三位電腦對手練習</span></button>
-          <button class="mode" id="btnMulti" type="button"><b>多人對戰</b><span>開房間或加入房間，與朋友一起開打</span></button>
+          <button class="mode solo" id="btnSolo" type="button"><b>單人遊玩</b><span>和三位電腦對手練習<br>獨自磨練牌技</span></button>
+          <button class="mode" id="btnMulti" type="button"><b>多人對戰</b><span>開房間或加入房間<br>與朋友一起開打</span></button>
         </div>
         <div id="resumeBox" hidden><button class="btn ask wide" id="btnResume" type="button"></button><button class="linkbtn" id="btnResumeDrop" type="button">不用了，清除這個房間</button></div>
       </section>
